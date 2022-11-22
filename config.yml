@@ -1,0 +1,413 @@
+#cloud-config
+
+locale: en_US.UTF-8
+
+apt_update: true
+
+system_info:
+  default_user:
+    name: operator
+
+users:
+  - name: bitcoin
+    gecos: bitcoin system user
+    shell: /bin/bash
+    sudo: false
+
+  - name: electrs
+    gecos: electrs system user
+    groups: bitcoin
+    shell: /bin/bash
+    sudo: false
+
+  - name: btcexp
+    gecos: BTC-RPC-Explorer system user
+    groups: bitcoin
+    shell: /bin/bash
+    sudo: false
+
+  - name: operator
+    gecos: Operator account
+    groups: adm, bitcoin, sudo
+    shell: /bin/bash
+    ssh_import_id: gh:1ma
+    sudo: ALL=(ALL) NOPASSWD:ALL
+
+write_files:
+  - path: /run/bitcoin-setup.sh
+    owner: root:root
+    permissions: '0644'
+    content: |
+      #!/usr/bin/env bash
+
+      set -euo pipefail
+
+      export BITCOIN_VERSION=23.0
+      export CFLAGS="-O2 --static -static -fPIC"
+      export CXXFLAGS="-O2 --static -static -fPIC"
+      export LDFLAGS="-s -static-libgcc -static-libstdc++"
+
+      cd /tmp
+      wget -q https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS
+      wget -q https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS.asc
+      wget -q https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/bitcoin-${BITCOIN_VERSION}.tar.gz
+
+      # TODO that's trashy, rethink approach
+      wget -q -O- https://raw.githubusercontent.com/1ma/dockertronics/master/bitcoin/developer_pubkeys.pem | gpg --import -
+
+      gpg --verify SHA256SUMS.asc SHA256SUMS
+      sha256sum --ignore-missing -c SHA256SUMS
+
+      tar zxf bitcoin-${BITCOIN_VERSION}.tar.gz
+      ./bitcoin-${BITCOIN_VERSION}/autogen.sh
+
+      mkdir build-${BITCOIN_VERSION}
+      cd build-${BITCOIN_VERSION}
+      ../bitcoin-${BITCOIN_VERSION}/contrib/install_db4.sh $(pwd)
+      export BDB_PREFIX="$(pwd)/db4"
+      ../bitcoin-${BITCOIN_VERSION}/configure \
+        BDB_LIBS="-L${BDB_PREFIX}/lib -ldb_cxx-4.8" \
+        BDB_CFLAGS="-I${BDB_PREFIX}/include" \
+        --disable-bench \
+        --disable-gui-tests \
+        --disable-maintainer-mode \
+        --disable-man \
+        --disable-tests \
+        --disable-zmq \
+        --with-daemon=yes \
+        --with-gui=no \
+        --with-libmultiprocess=no \
+        --with-libs=no \
+        --with-miniupnpc=no \
+        --with-mpgen=no \
+        --with-natpmp=no \
+        --with-qrencode=no \
+        --with-utils=yes
+
+      make -j$(nproc)
+      make install
+
+      mkdir /home/bitcoin/data
+      chown -R bitcoin:bitcoin /home/bitcoin/data
+      chmod 710 /etc/bitcoind
+
+      systemctl enable bitcoind.service
+  - path: /etc/bitcoind/bitcoin.conf
+    owner: bitcoin:bitcoin
+    defer: true
+    permissions: '0600'
+    content: |
+      # Bitcoin daemon
+      server=1
+      txindex=1
+
+      # Network
+      listen=1
+      listenonion=1
+      proxy=127.0.0.1:9050
+      bind=127.0.0.1
+
+      maxconnections=50
+      maxuploadtarget=16384
+
+      # Initial block download optimizations
+      # Comment them out and restart after full sync
+      dbcache=12288
+      blocksonly=1
+  - path: /lib/systemd/system/bitcoind.service
+    owner: root:root
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Bitcoin daemon
+      Documentation=https://github.com/bitcoin/bitcoin/blob/master/doc/init.md
+
+      # https://www.freedesktop.org/wiki/Software/systemd/NetworkTarget/
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      ExecStart=/usr/local/bin/bitcoind -pid=/run/bitcoind/bitcoind.pid \
+      -conf=/etc/bitcoind/bitcoin.conf \
+      -datadir=/home/bitcoin/data \
+      -whitelist=download@127.0.0.1 \
+      -assumevalid=0 \
+      -startupnotify="chmod g+r /home/bitcoin/data/.cookie" \
+      -nodebuglogfile
+
+      # Make sure the config directory is readable by the service user
+      PermissionsStartOnly=true
+      ExecStartPre=/bin/chgrp bitcoin /etc/bitcoind
+
+      # Process management
+      ####################
+
+      Type=exec
+      PIDFile=/run/bitcoind/bitcoind.pid
+      Restart=on-failure
+      TimeoutStartSec=infinity
+      TimeoutStopSec=600
+
+      # Directory creation and permissions
+      ####################################
+
+      # Run as bitcoin:bitcoin
+      User=bitcoin
+      Group=bitcoin
+
+      # /run/bitcoind
+      RuntimeDirectory=bitcoind
+      RuntimeDirectoryMode=0710
+
+      # /etc/bitcoind
+      ConfigurationDirectory=bitcoind
+      ConfigurationDirectoryMode=0710
+
+      # Hardening measures
+      ####################
+
+      # Provide a private /tmp and /var/tmp.
+      PrivateTmp=true
+
+      # Mount /usr, /boot/ and /etc read-only for the process.
+      ProtectSystem=full
+
+      # Disallow the process and all of its children to gain
+      # new privileges through execve().
+      NoNewPrivileges=true
+
+      # Use a new /dev namespace only populated with API pseudo devices
+      # such as /dev/null, /dev/zero and /dev/random.
+      PrivateDevices=true
+
+      # Deny the creation of writable and executable memory mappings.
+      MemoryDenyWriteExecute=true
+
+      [Install]
+      WantedBy=multi-user.target
+  - path: /etc/nginx/nginx.conf
+    owner: root:root
+    defer: true
+    permissions: '0644'
+    content: |
+      user www-data;
+      worker_processes auto;
+      pid /run/nginx.pid;
+      include /etc/nginx/modules-enabled/*.conf;
+
+      events {
+        worker_connections 768;
+      }
+
+      stream {
+        ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
+        ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
+        ssl_session_cache shared:SSL:1m;
+        ssl_session_timeout 4h;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_prefer_server_ciphers on;
+
+        include /etc/nginx/streams-enabled/*.conf;
+      }
+  - path: /etc/nginx/streams-enabled/electrs-reverse-proxy.conf
+    owner: root:root
+    defer: true
+    permissions: '0644'
+    content: |
+      upstream electrs {
+        server 127.0.0.1:50001;
+      }
+
+      server {
+        listen 50002 ssl;
+        proxy_pass electrs;
+      }
+  - path: /run/electrs-setup.sh
+    owner: root:root
+    permissions: '0644'
+    content: |
+      #!/usr/bin/env bash
+
+      set -euo pipefail
+
+      export ELECTRS_VERSION=v0.9.10
+
+      wget -q -O- https://romanzey.de/pgp.txt | gpg --import -
+
+      cd /home/electrs
+      git clone --branch ${ELECTRS_VERSION} https://github.com/romanz/electrs.git
+      cd electrs
+      git verify-tag ${ELECTRS_VERSION}
+
+      cargo build --locked --release
+      install -m 0755 -o root -g root -t /usr/local/bin ./target/release/electrs
+
+      mkdir /home/electrs/data
+      chown -R electrs:electrs /home/electrs
+
+      systemctl enable electrs.service
+  - path: /etc/electrs/electrs.conf
+    owner: electrs:electrs
+    defer: true
+    permissions: '0644'
+    content: |
+      network = "bitcoin"
+      daemon_dir= "/home/bitcoin/data"
+      daemon_rpc_addr = "127.0.0.1:8332"
+      daemon_p2p_addr = "127.0.0.1:8333"
+
+      # Electrs settings
+      electrum_rpc_addr = "127.0.0.1:50001"
+      db_dir = "/home/electrs/data"
+
+      # Logging
+      log_filters = "INFO"
+      timestamp = true
+  - path: /lib/systemd/system/electrs.service
+    owner: root:root
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Electrs daemon
+      Wants=bitcoind.service
+      After=bitcoind.service
+
+      [Service]
+      ExecStart=/usr/local/bin/electrs --conf /etc/electrs/electrs.conf
+
+      Type=simple
+      Restart=always
+      TimeoutSec=120
+      RestartSec=30
+      KillMode=process
+
+      User=electrs
+
+      RuntimeDirectory=electrs
+      RuntimeDirectoryMode=0710
+
+      PrivateTmp=true
+      PrivateDevices=true
+      MemoryDenyWriteExecute=true
+
+      [Install]
+      WantedBy=multi-user.target
+  - path: /etc/nginx/streams-enabled/btcexp-reverse-proxy.conf
+    owner: root:root
+    defer: true
+    permissions: '0644'
+    content: |
+      upstream btcexp {
+        server 127.0.0.1:3002;
+      }
+      server {
+        listen 4000 ssl;
+        proxy_pass btcexp;
+      }
+  - path: /run/btcexp-setup.sh
+    owner: root:root
+    permissions: '0644'
+    content: |
+      #!/usr/bin/env bash
+
+      set -euo pipefail
+
+      export BTCEXP_VERSION=v3.3.0
+
+      wget -q -O- https://github.com/janoside.gpg | gpg --import -
+
+      cd /home/btcexp
+      git clone --branch ${BTCEXP_VERSION} https://github.com/janoside/btc-rpc-explorer.git
+      cd btc-rpc-explorer
+      git verify-commit ${BTCEXP_VERSION}
+
+      cat <<'EOF' > .env
+      BTCEXP_ADDRESS_API=electrum
+      BTCEXP_BITCOIND_COOKIE=/home/bitcoin/data/.cookie
+      BTCEXP_BITCOIND_HOST=127.0.0.1
+      BTCEXP_BITCOIND_PORT=8332
+      BTCEXP_BITCOIND_RPC_TIMEOUT=10000
+      BTCEXP_ELECTRUM_SERVERS=tcp://127.0.0.1:50001
+      BTCEXP_LOCAL_CURRENCY=eur
+      BTCEXP_NO_RATES=false
+      BTCEXP_PRIVACY_MODE=false
+      BTCEXP_SLOW_DEVICE_MODE=false
+      BTCEXP_UI_HIDE_INFO_NOTES=true
+      BTCEXP_UI_THEME=dark
+      EOF
+
+      npm install
+
+      chown -R btcexp:btcexp /home/btcexp
+
+      systemctl enable btcexp.service
+  - path: /lib/systemd/system/btcexp.service
+    owner: root:root
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=BTC RPC Explorer
+      After=bitcoind.service electrs.service
+      PartOf=bitcoind.service
+
+      [Service]
+      WorkingDirectory=/home/btcexp/btc-rpc-explorer
+      ExecStart=/usr/bin/npm start
+      User=btcexp
+
+      Restart=always
+      RestartSec=30
+
+      [Install]
+      WantedBy=multi-user.target
+
+apt:
+  sources:
+    nodesource:
+      source: "deb https://deb.nodesource.com/node_18.x jammy main"
+      keyid: 9FD3 B784 BC1C 6FC3 1A8A 0A1C 1655 A0AB 6857 6280
+    tor:
+      source: "deb [arch=amd64 signed-by=$KEY_FILE] https://deb.torproject.org/torproject.org jammy main"
+      keyid: A3C4 F0F9 79CA A22C DBA8 F512 EE8C BC9E 886D DD89
+
+packages:
+  - autoconf
+  - automake
+  - build-essential
+  - cargo
+  - clang
+  - cmake
+  - fail2ban
+  - git
+  - libboost-filesystem-dev
+  - libboost-system-dev
+  - libboost-thread-dev
+  - libevent-dev
+  - libsqlite3-dev
+  - libtool
+  - nginx
+  - nodejs
+  - pkg-config
+  - tor
+  - ufw
+
+runcmd:
+  - usermod -aG adm vagrant
+  - adduser bitcoin debian-tor
+  - adduser cln debian-tor
+  - bash -x /run/bitcoin-setup.sh
+  - bash -x /run/electrs-setup.sh
+  - bash -x /run/btcexp-setup.sh
+  - openssl req -x509 -nodes -newkey rsa:4096 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj "/CN=localhost" -days 3650
+  - nginx -t
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow ssh
+  - ufw allow 4000/tcp comment 'allow BTC RPC Explorer SSL'
+  - ufw allow 50002/tcp comment 'allow Electrum SSL'
+  - ufw logging off
+  - systemctl enable ufw.service
+  - ufw enable
+
+power_state:
+  mode: reboot
