@@ -1,6 +1,12 @@
 # AutoNode
 
-A [Cloud-Init](https://cloud-init.io) template that builds your Bitcoin node for you.
+A [Cloud-Init](https://cloud-init.io) template to build Bitcoin nodes automatically.
+
+## Motivation
+
+> "Ain't nobody got time to sit through [RaspiBolt](https://raspibolt.org/) more than once. Once you learn how to build a Bitcoin node with your hands, the next ones should just build themselves."
+>
+> — Me
 
 ## Contents
 
