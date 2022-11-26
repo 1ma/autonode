@@ -106,7 +106,6 @@ write_files:
       nodebuglogfile=1
 
       assumevalid=0
-      startupnotify="chmod g+r /home/bitcoin/data/.cookie"
       whitelist=download@127.0.0.1
 
       # Bitcoin daemon
@@ -139,7 +138,9 @@ write_files:
       Wants=network-online.target electrs.service btcexp.service
 
       [Service]
-      ExecStart=/usr/local/bin/bitcoind -conf=/etc/bitcoind/bitcoin.conf
+      ExecStart=/usr/local/bin/bitcoind \
+      -conf=/etc/bitcoind/bitcoin.conf \
+      -startupnotify="chmod g+r /home/bitcoin/data/.cookie"
 
       # Make sure the config directory is readable by the service user
       PermissionsStartOnly=true
