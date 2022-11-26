@@ -2,11 +2,9 @@
 
 locale: en_US.UTF-8
 
-apt_update: true
-
 system_info:
   default_user:
-    name: operator
+    name: commendatore
 
 users:
   - name: bitcoin
@@ -26,14 +24,20 @@ users:
     shell: /bin/bash
     sudo: false
 
-  - name: operator
-    gecos: Operator account
+  - name: commendatore
+    gecos: Node operator account
     groups: adm, bitcoin, sudo
     shell: /bin/bash
     ssh_import_id: gh:1ma
     sudo: ALL=(ALL) NOPASSWD:ALL
 
 write_files:
+  - path: /home/commendatore/.bitcoin/bitcoin.conf
+    owner: commendatore:commendatore
+    defer: true
+    permissions: '0644'
+    content: |
+      datadir=/home/bitcoin/data
   - path: /run/bitcoin-setup.sh
     owner: root:root
     permissions: '0644'
@@ -97,6 +101,14 @@ write_files:
     defer: true
     permissions: '0600'
     content: |
+      datadir=/home/bitcoin/data
+      pid=/run/bitcoind/bitcoind.pid
+      nodebuglogfile=1
+
+      assumevalid=0
+      startupnotify="chmod g+r /home/bitcoin/data/.cookie"
+      whitelist=download@127.0.0.1
+
       # Bitcoin daemon
       server=1
       txindex=1
@@ -124,16 +136,10 @@ write_files:
 
       # https://www.freedesktop.org/wiki/Software/systemd/NetworkTarget/
       After=network-online.target
-      Wants=network-online.target
+      Wants=network-online.target electrs.service btcexp.service
 
       [Service]
-      ExecStart=/usr/local/bin/bitcoind -pid=/run/bitcoind/bitcoind.pid \
-      -conf=/etc/bitcoind/bitcoin.conf \
-      -datadir=/home/bitcoin/data \
-      -whitelist=download@127.0.0.1 \
-      -assumevalid=0 \
-      -startupnotify="chmod g+r /home/bitcoin/data/.cookie" \
-      -nodebuglogfile
+      ExecStart=/usr/local/bin/bitcoind -conf=/etc/bitcoind/bitcoin.conf
 
       # Make sure the config directory is readable by the service user
       PermissionsStartOnly=true
@@ -269,8 +275,8 @@ write_files:
     content: |
       [Unit]
       Description=Electrs daemon
-      Wants=bitcoind.service
       After=bitcoind.service
+      PartOf=bitcoind.service
 
       [Service]
       ExecStart=/usr/local/bin/electrs --conf /etc/electrs/electrs.conf
@@ -361,13 +367,16 @@ write_files:
       [Install]
       WantedBy=multi-user.target
 
+apt_update: true
+apt_upgrade: true
+
 apt:
   sources:
     nodesource:
       source: "deb https://deb.nodesource.com/node_18.x jammy main"
       keyid: 9FD3 B784 BC1C 6FC3 1A8A 0A1C 1655 A0AB 6857 6280
     tor:
-      source: "deb [arch=amd64 signed-by=$KEY_FILE] https://deb.torproject.org/torproject.org jammy main"
+      source: "deb https://deb.torproject.org/torproject.org jammy main"
       keyid: A3C4 F0F9 79CA A22C DBA8 F512 EE8C BC9E 886D DD89
 
 packages:
