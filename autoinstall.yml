@@ -1,0 +1,29 @@
+#cloud-config
+
+# https://ubuntu.com/server/docs/install/autoinstall-reference
+
+autoinstall:
+  version: 1
+  interactive-sections:
+  #  - locale             # locale is set in user-data
+    - refresh-installer
+    - keyboard
+  #  - source             # Regular installation or minimized. Default is regular and it's fine.
+    - network
+    - proxy
+    - apt
+    - storage
+  #  - identity           # hostname and main user are set in user-data
+  #  - ubuntu-pro         # rofl
+  #  - ssh                # set in ssh section below. install openssh server, disable pwd login
+    - drivers
+  #  - snaps              # rofl
+  ssh:
+    install-server: true
+    allow-pw: false
+  user-data:
+    hostname: node01
+
+    locale: en_US.UTF-8
+
+    # rest of AutoNode cloud-init template...
