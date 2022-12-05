@@ -1,5 +1,7 @@
 #cloud-config
 
+hostname: node01
+
 locale: en_US.UTF-8
 
 system_info:
@@ -26,7 +28,7 @@ users:
 
   - name: commendatore
     gecos: Node operator account
-    groups: adm, bitcoin, sudo
+    groups: adm, bitcoin, cdrom, dip, lxd, plugdev, sudo
     shell: /bin/bash
     ssh_import_id: gh:1ma
     sudo: ALL=(ALL) NOPASSWD:ALL
