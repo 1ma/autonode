@@ -149,6 +149,9 @@ write_files:
       # Comment them out and restart after full sync
       dbcache=12288
       blocksonly=1
+
+      # Barcelona Bitcoin Only community node
+      addnode=jr77cwjarx5rba4x3hahafvjpkxdfuj7iiyctro47clguea7uzqhblad.onion:8333
   - path: /lib/systemd/system/bitcoin.service
     owner: root:root
     permissions: '0644'
