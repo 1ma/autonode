@@ -34,6 +34,27 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
 
 write_files:
+  - path: /etc/tor/torrc
+    owner: root:root
+    defer: true
+    append: true
+    permissions: '0644'
+    content: |
+      ControlPort 9051
+      CookieAuthentication 1
+      CookieAuthFileGroupReadable 1
+
+      HiddenServiceDir /var/lib/tor/sshd/
+      HiddenServiceVersion 3
+      HiddenServicePort 22 127.0.0.1:22
+
+      HiddenServiceDir /var/lib/tor/electrs/
+      HiddenServiceVersion 3
+      HiddenServicePort 50001 127.0.0.1:50001
+
+      HiddenServiceDir /var/lib/tor/btc-rpc-explorer/
+      HiddenServiceVersion 3
+      HiddenServicePort 80 127.0.0.1:3002
   - path: /home/satoshi/.bitcoin/bitcoin.conf
     owner: satoshi:satoshi
     defer: true
@@ -69,7 +90,9 @@ write_files:
 
       mkdir build-${BITCOIN_VERSION}
       cd build-${BITCOIN_VERSION}
+
       ../bitcoin-${BITCOIN_VERSION}/contrib/install_db4.sh $(pwd)
+
       export BDB_PREFIX="$(pwd)/db4"
       ../bitcoin-${BITCOIN_VERSION}/configure \
         BDB_LIBS="-L${BDB_PREFIX}/lib -ldb_cxx-4.8" \
@@ -406,7 +429,6 @@ packages:
 runcmd:
   - usermod -aG adm vagrant
   - adduser bitcoin debian-tor
-  - adduser cln debian-tor
   - bash -x /run/bitcoin-setup.sh
   - bash -x /run/electrs-setup.sh
   - bash -x /run/btcexp-setup.sh
