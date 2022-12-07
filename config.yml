@@ -6,7 +6,7 @@ locale: en_US.UTF-8
 
 system_info:
   default_user:
-    name: commendatore
+    name: satoshi
 
 users:
   - name: bitcoin
@@ -26,7 +26,7 @@ users:
     shell: /bin/bash
     sudo: false
 
-  - name: commendatore
+  - name: satoshi
     gecos: Node operator account
     groups: adm, bitcoin, cdrom, dip, lxd, plugdev, sudo
     shell: /bin/bash
@@ -34,8 +34,8 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
 
 write_files:
-  - path: /home/commendatore/.bitcoin/bitcoin.conf
-    owner: commendatore:commendatore
+  - path: /home/satoshi/.bitcoin/bitcoin.conf
+    owner: satoshi:satoshi
     defer: true
     permissions: '0644'
     content: |
