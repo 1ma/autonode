@@ -33,6 +33,8 @@ A [Cloud-Init](https://cloud-init.io) template to build Bitcoin nodes automatica
 
 ### Check Services Health
 
+### Lock down admin user
+
 ### \[Recommended\] Move Bitcoin and Electrs data directories to dedicated storage
 
 ### \[Post IBD\] Disable Bitcoin Core settings for the Initial Block Download

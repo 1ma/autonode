@@ -142,6 +142,7 @@ write_files:
       listenonion=1
       proxy=127.0.0.1:9050
       bind=127.0.0.1
+      i2psam=127.0.0.1:7656
 
       maxconnections=50
       maxuploadtarget=16384
@@ -404,6 +405,8 @@ apt:
     tor:
       source: "deb https://deb.torproject.org/torproject.org jammy main"
       keyid: A3C4 F0F9 79CA A22C DBA8 F512 EE8C BC9E 886D DD89
+    i2pd:
+      source: "ppa:purplei2p/i2pd"
 
 packages:
   - autoconf
@@ -414,12 +417,14 @@ packages:
   - cmake
   - fail2ban
   - git
+  - i2pd
   - libboost-filesystem-dev
   - libboost-system-dev
   - libboost-thread-dev
   - libevent-dev
   - libsqlite3-dev
   - libtool
+  - net-tools
   - nginx
   - nodejs
   - pkg-config
@@ -434,6 +439,7 @@ runcmd:
   - bash -x /run/btcexp-setup.sh
   - openssl req -x509 -nodes -newkey rsa:4096 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj "/CN=localhost" -days 3650
   - nginx -t
+  - systemctl enable i2pd.service
   - ufw default deny incoming
   - ufw default allow outgoing
   - ufw allow ssh
