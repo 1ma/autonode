@@ -44,6 +44,6 @@ Vagrant.configure("2") do |config|
     cloud_init.path = "./config.yml"
   end
 
-  config.vm.network "forwarded_port", guest: 4000, host: 4000
+  config.vm.network "forwarded_port", guest: 3003, host: 3003
   config.vm.network "forwarded_port", guest: 50002, host: 50002
 end

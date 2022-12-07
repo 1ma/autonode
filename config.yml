@@ -322,7 +322,7 @@ write_files:
         server 127.0.0.1:3002;
       }
       server {
-        listen 4000 ssl;
+        listen 3003 ssl;
         proxy_pass btcexp;
       }
   - path: /run/btcexp-setup.sh
@@ -432,7 +432,7 @@ runcmd:
   - ufw default deny incoming
   - ufw default allow outgoing
   - ufw allow ssh
-  - ufw allow 4000/tcp comment 'allow BTC RPC Explorer SSL'
+  - ufw allow 3003/tcp comment 'allow BTC RPC Explorer SSL'
   - ufw allow 50002/tcp comment 'allow Electrum SSL'
   - ufw logging off
   - systemctl enable ufw.service
