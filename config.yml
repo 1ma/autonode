@@ -61,9 +61,10 @@ write_files:
     permissions: '0644'
     content: |
       datadir=/home/bitcoin/data
-  - path: /run/bitcoin-setup.sh
-    owner: root:root
-    permissions: '0644'
+  - path: /home/bitcoin/bitcoin-setup.sh
+    owner: bitcoin:bitcoin
+    defer: true
+    permissions: '0755'
     content: |
       #!/usr/bin/env bash
 
@@ -74,7 +75,9 @@ write_files:
       export CXXFLAGS="-O2 --static -static -fPIC"
       export LDFLAGS="-s -static-libgcc -static-libstdc++"
 
-      cd /tmp
+      mkdir code data
+
+      cd code
       wget -q https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS
       wget -q https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS.asc
       wget -q https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/bitcoin-${BITCOIN_VERSION}.tar.gz
@@ -88,8 +91,8 @@ write_files:
       tar zxf bitcoin-${BITCOIN_VERSION}.tar.gz
       ./bitcoin-${BITCOIN_VERSION}/autogen.sh
 
-      mkdir build-${BITCOIN_VERSION}
-      cd build-${BITCOIN_VERSION}
+      mkdir build
+      cd build
 
       ../bitcoin-${BITCOIN_VERSION}/contrib/install_db4.sh $(pwd)
 
@@ -114,21 +117,16 @@ write_files:
         --with-utils=yes
 
       make -j$(nproc)
-      make install
-
-      mkdir /home/bitcoin/data
-      chown -R bitcoin:bitcoin /home/bitcoin/data
-      chmod 710 /etc/bitcoind
-
-      systemctl enable bitcoind.service
-  - path: /etc/bitcoind/bitcoin.conf
+  - path: /home/bitcoin/bitcoin.conf
     owner: bitcoin:bitcoin
     defer: true
     permissions: '0600'
     content: |
       datadir=/home/bitcoin/data
-      pid=/run/bitcoind/bitcoind.pid
+      pid=/run/bitcoin/bitcoind.pid
       nodebuglogfile=1
+
+      startupnotify=chmod g+r /home/bitcoin/data/.cookie
 
       assumevalid=0
       whitelist=download@127.0.0.1
@@ -151,7 +149,7 @@ write_files:
       # Comment them out and restart after full sync
       dbcache=12288
       blocksonly=1
-  - path: /lib/systemd/system/bitcoind.service
+  - path: /lib/systemd/system/bitcoin.service
     owner: root:root
     permissions: '0644'
     content: |
@@ -164,19 +162,13 @@ write_files:
       Wants=network-online.target electrs.service btcexp.service
 
       [Service]
-      ExecStart=/usr/local/bin/bitcoind \
-      -conf=/etc/bitcoind/bitcoin.conf \
-      -startupnotify="chmod g+r /home/bitcoin/data/.cookie"
-
-      # Make sure the config directory is readable by the service user
-      PermissionsStartOnly=true
-      ExecStartPre=/bin/chgrp bitcoin /etc/bitcoind
+      ExecStart=/usr/local/bin/bitcoind -conf=/home/bitcoin/bitcoin.conf
 
       # Process management
       ####################
 
       Type=exec
-      PIDFile=/run/bitcoind/bitcoind.pid
+      PIDFile=/run/bitcoin/bitcoind.pid
       Restart=on-failure
       TimeoutStartSec=infinity
       TimeoutStopSec=600
@@ -188,13 +180,9 @@ write_files:
       User=bitcoin
       Group=bitcoin
 
-      # /run/bitcoind
-      RuntimeDirectory=bitcoind
+      # /run/bitcoin
+      RuntimeDirectory=bitcoin
       RuntimeDirectoryMode=0710
-
-      # /etc/bitcoind
-      ConfigurationDirectory=bitcoind
-      ConfigurationDirectoryMode=0710
 
       # Hardening measures
       ####################
@@ -302,8 +290,8 @@ write_files:
     content: |
       [Unit]
       Description=Electrs daemon
-      After=bitcoind.service
-      PartOf=bitcoind.service
+      After=bitcoin.service
+      PartOf=bitcoin.service
 
       [Service]
       ExecStart=/usr/local/bin/electrs --conf /etc/electrs/electrs.conf
@@ -380,8 +368,8 @@ write_files:
     content: |
       [Unit]
       Description=BTC RPC Explorer
-      After=bitcoind.service electrs.service
-      PartOf=bitcoind.service
+      After=bitcoin.service electrs.service
+      PartOf=bitcoin.service
 
       [Service]
       WorkingDirectory=/home/btcexp/btc-rpc-explorer
@@ -434,7 +422,9 @@ packages:
 runcmd:
   - usermod -aG adm vagrant
   - adduser bitcoin debian-tor
-  - bash -x /run/bitcoin-setup.sh
+  - su -c "bash -x /home/bitcoin/bitcoin-setup.sh" - bitcoin
+  - make -C /home/bitcoin/code/build install
+  - systemctl enable bitcoin.service
   - bash -x /run/electrs-setup.sh
   - bash -x /run/btcexp-setup.sh
   - openssl req -x509 -nodes -newkey rsa:4096 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj "/CN=localhost" -days 3650
