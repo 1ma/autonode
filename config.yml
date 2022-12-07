@@ -420,7 +420,6 @@ packages:
   - ufw
 
 runcmd:
-  - usermod -aG adm vagrant
   - adduser bitcoin debian-tor
   - su -c "bash -x /home/bitcoin/bitcoin-setup.sh" - bitcoin
   - make -C /home/bitcoin/code/build install
