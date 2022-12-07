@@ -419,6 +419,7 @@ packages:
   - nginx
   - nodejs
   - pkg-config
+  - tmux
   - tor
   - ufw
 
