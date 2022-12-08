@@ -120,7 +120,7 @@ write_files:
   - path: /home/bitcoin/bitcoin.conf
     owner: bitcoin:bitcoin
     defer: true
-    permissions: '0600'
+    permissions: '0640'
     content: |
       datadir=/home/bitcoin/data
       pid=/run/bitcoin/bitcoind.pid
