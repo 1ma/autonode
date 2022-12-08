@@ -390,6 +390,9 @@ apt_upgrade: true
 
 apt:
   sources:
+    nginx:
+      source: "deb http://nginx.org/packages/mainline/ubuntu jammy nginx"
+      keyid: 573B FD6B 3D8F BC64 1079 A6AB ABF5 BD82 7BD9 BF62
     nodesource:
       source: "deb https://deb.nodesource.com/node_18.x jammy main"
       keyid: 9FD3 B784 BC1C 6FC3 1A8A 0A1C 1655 A0AB 6857 6280
@@ -400,6 +403,7 @@ apt:
       source: "ppa:purplei2p/i2pd"
 
 packages:
+  - apt-transport-https
   - autoconf
   - automake
   - build-essential
@@ -422,6 +426,7 @@ packages:
   - tmux
   - tor
   - ufw
+  - wireguard
 
 runcmd:
   - adduser bitcoin debian-tor
