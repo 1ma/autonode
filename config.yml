@@ -53,6 +53,51 @@ write_files:
       HiddenServiceDir /var/lib/tor/btc-rpc-explorer/
       HiddenServiceVersion 3
       HiddenServicePort 80 127.0.0.1:3002
+  - path: /home/satoshi/superuser-setup.sh
+    owner: satoshi:satoshi
+    defer: true
+    permissions: '0755'
+    content: |
+      #!/usr/bin/env bash
+
+      set -euo pipefail
+
+      # Add bitcoin user to the debian-tor group
+      sudo usermod -aG debian-tor bitcoin
+
+      # Install bitcoin binaries in /usr/local/bin
+      sudo make -C /home/bitcoin/code/build install
+
+      # Install electrs binary
+      sudo install -m 0755 -o root -g root -t /usr/local/bin /home/electrs/code/target/release/electrs
+
+      # Create self-signed certificate for HTTPS sites and test nginx configuration
+      sudo openssl req \
+        -x509 \
+        -nodes \
+        -newkey rsa:4096 \
+        -keyout /etc/ssl/private/nginx-selfsigned.key \
+        -out /etc/ssl/certs/nginx-selfsigned.crt \
+        -subj "/O=AutoNode" \
+        -addext "basicConstraints=critical,CA:TRUE,pathlen:0" \
+        -addext "subjectAltName = DNS:blackbox.lan,DNS:blackbox.vpn,IP:192.168.1.44,IP:192.168.21.1" \
+        -days 36500
+      sudo nginx -t
+
+      # Set up node firewall
+      sudo ufw default deny incoming
+      sudo ufw default allow outgoing
+      sudo ufw allow 22/tcp comment 'allow SSH connections'
+      sudo ufw allow 3003/tcp comment 'allow BTC RPC Explorer SSL'
+      sudo ufw allow 50002/tcp comment 'allow Electrum SSL'
+      sudo ufw logging off
+      sudo ufw enable
+
+      # Enable systemd services
+      sudo systemctl enable bitcoin.service
+      sudo systemctl enable btcexp.service
+      sudo systemctl enable electrs.service
+      sudo systemctl enable i2pd.service
   - path: /home/satoshi/.bitcoin/bitcoin.conf
     owner: satoshi:satoshi
     defer: true
@@ -429,26 +474,10 @@ packages:
   - wireguard
 
 runcmd:
-  - adduser bitcoin debian-tor
   - su -c "bash -x /home/bitcoin/bitcoin-setup.sh" - bitcoin
-  - make -C /home/bitcoin/code/build install
-  - systemctl enable bitcoin.service
   - su -c "bash -x /home/electrs/electrs-setup.sh" - electrs
-  - install -m 0755 -o root -g root -t /usr/local/bin /home/electrs/code/target/release/electrs
-  - systemctl enable electrs.service
   - su -c "bash -x /home/btcexp/btcexp-setup.sh" - btcexp
-  - systemctl enable btcexp.service
-  - openssl req -x509 -nodes -newkey rsa:4096 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj "/O=AutoNode" -addext "basicConstraints=critical,CA:TRUE,pathlen:0" -addext "subjectAltName = DNS:blackbox.lan,DNS:blackbox.vpn,IP:192.168.1.44,IP:192.168.21.1" -days 36500
-  - nginx -t
-  - systemctl enable i2pd.service
-  - ufw default deny incoming
-  - ufw default allow outgoing
-  - ufw allow ssh
-  - ufw allow 3003/tcp comment 'allow BTC RPC Explorer SSL'
-  - ufw allow 50002/tcp comment 'allow Electrum SSL'
-  - ufw logging off
-  - systemctl enable ufw.service
-  - ufw enable
+  - su -c "bash -x /home/satoshi/superuser-setup.sh" - satoshi
 
 power_state:
   mode: reboot
