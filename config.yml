@@ -321,7 +321,7 @@ write_files:
 
       cd ..
       mkdir data
-  - path: /etc/electrs/electrs.conf
+  - path: /home/electrs/electrs.conf
     owner: electrs:electrs
     defer: true
     permissions: '0644'
@@ -348,7 +348,7 @@ write_files:
       PartOf=bitcoin.service
 
       [Service]
-      ExecStart=/usr/local/bin/electrs --conf /etc/electrs/electrs.conf
+      ExecStart=/usr/local/bin/electrs --conf /home/electrs/electrs.conf
 
       Type=simple
       Restart=always

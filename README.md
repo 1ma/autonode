@@ -20,6 +20,24 @@ The OpenSSH server is also exposed as a Tor hidden service on port 22.
 
 ## Organization
 
+```
+/home/
+├── bitcoin/
+│   ├── bitcoin.conf
+│   ├── bitcoin-setup.sh
+│   ├── code/
+│   └── data/
+├── btcexp/
+│   └── code/
+├── electrs/
+│   ├── code/
+│   ├── data/
+│   ├── electrs.conf
+│   └── electrs-setup.sh
+└── satoshi/
+    └── superuser-setup.sh
+```
+
 ## Installation
 
 ### Use it on a Raspberry Pi (easy)
