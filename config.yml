@@ -221,14 +221,23 @@ write_files:
         worker_connections 768;
       }
 
-      stream {
+      http {
         ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
         ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
-        ssl_session_cache shared:SSL:1m;
+        ssl_session_cache shared:HTTP-TLS:1m;
         ssl_session_timeout 4h;
         ssl_protocols TLSv1.2 TLSv1.3;
         ssl_prefer_server_ciphers on;
+        include /etc/nginx/sites-enabled/*.conf;
+      }
 
+      stream {
+        ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
+        ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
+        ssl_session_cache shared:STREAM-TLS:1m;
+        ssl_session_timeout 4h;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_prefer_server_ciphers on;
         include /etc/nginx/streams-enabled/*.conf;
       }
   - path: /etc/nginx/streams-enabled/electrs-reverse-proxy.conf
@@ -311,17 +320,17 @@ write_files:
 
       [Install]
       WantedBy=multi-user.target
-  - path: /etc/nginx/streams-enabled/btcexp-reverse-proxy.conf
+  - path: /etc/nginx/sites-enabled/btcexp-reverse-proxy.conf
     owner: root:root
     defer: true
     permissions: '0644'
     content: |
-      upstream btcexp {
-        server 127.0.0.1:3002;
-      }
       server {
         listen 3003 ssl;
-        proxy_pass btcexp;
+        error_page 497 =301 https://$host:$server_port$request_uri;
+        location / {
+          proxy_pass http://127.0.0.1:3002;
+        }
       }
   - path: /home/btcexp/btcexp-setup.sh
     owner: btcexp:btcexp
