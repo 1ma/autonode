@@ -323,9 +323,10 @@ write_files:
         listen 3003 ssl;
         proxy_pass btcexp;
       }
-  - path: /run/btcexp-setup.sh
-    owner: root:root
-    permissions: '0644'
+  - path: /home/btcexp/btcexp-setup.sh
+    owner: btcexp:btcexp
+    defer: true
+    permissions: '0755'
     content: |
       #!/usr/bin/env bash
 
@@ -335,9 +336,8 @@ write_files:
 
       wget -q -O- https://github.com/janoside.gpg | gpg --import -
 
-      cd /home/btcexp
-      git clone --branch ${BTCEXP_VERSION} https://github.com/janoside/btc-rpc-explorer.git
-      cd btc-rpc-explorer
+      git clone --branch ${BTCEXP_VERSION} https://github.com/janoside/btc-rpc-explorer.git code
+      cd code
       git verify-commit ${BTCEXP_VERSION}
 
       cat <<'EOF' > .env
@@ -356,10 +356,6 @@ write_files:
       EOF
 
       npm install
-
-      chown -R btcexp:btcexp /home/btcexp
-
-      systemctl enable btcexp.service
   - path: /lib/systemd/system/btcexp.service
     owner: root:root
     permissions: '0644'
@@ -370,7 +366,7 @@ write_files:
       PartOf=bitcoin.service
 
       [Service]
-      WorkingDirectory=/home/btcexp/btc-rpc-explorer
+      WorkingDirectory=/home/btcexp/code
       ExecStart=/usr/bin/npm start
       User=btcexp
 
@@ -431,7 +427,8 @@ runcmd:
   - su -c "bash -x /home/electrs/electrs-setup.sh" - electrs
   - install -m 0755 -o root -g root -t /usr/local/bin /home/electrs/code/target/release/electrs
   - systemctl enable electrs.service
-  - bash -x /run/btcexp-setup.sh
+  - su -c "bash -x /home/btcexp/btcexp-setup.sh" - btcexp
+  - systemctl enable btcexp.service
   - openssl req -x509 -nodes -newkey rsa:4096 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj "/O=AutoNode" -addext "basicConstraints=critical,CA:TRUE,pathlen:0" -addext "subjectAltName = DNS:blackbox.lan,DNS:blackbox.vpn,IP:192.168.1.44,IP:192.168.21.1" -days 36500
   - nginx -t
   - systemctl enable i2pd.service
