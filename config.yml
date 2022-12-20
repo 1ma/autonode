@@ -179,6 +179,8 @@ write_files:
       txindex=1
 
       # Network
+      onlynet=i2p
+      onlynet=onion
       listen=1
       listenonion=1
       proxy=127.0.0.1:9050
