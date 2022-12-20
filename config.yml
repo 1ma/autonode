@@ -12,25 +12,23 @@ users:
   - name: bitcoin
     gecos: bitcoin system user
     shell: /bin/bash
-    sudo: false
 
   - name: electrs
     gecos: electrs system user
     groups: bitcoin
     shell: /bin/bash
-    sudo: false
 
   - name: btcexp
     gecos: BTC-RPC-Explorer system user
     groups: bitcoin
     shell: /bin/bash
-    sudo: false
 
   - name: satoshi
     gecos: Node operator account
     groups: adm, bitcoin, cdrom, dip, lxd, plugdev, sudo
     shell: /bin/bash
-    ssh_import_id: gh:1ma
+    ssh_import_id:
+      - gh:1ma
     sudo: ALL=(ALL) NOPASSWD:ALL
 
 write_files:
@@ -246,9 +244,10 @@ write_files:
         listen 50002 ssl;
         proxy_pass electrs;
       }
-  - path: /run/electrs-setup.sh
-    owner: root:root
-    permissions: '0644'
+  - path: /home/electrs/electrs-setup.sh
+    owner: electrs:electrs
+    defer: true
+    permissions: '0755'
     content: |
       #!/usr/bin/env bash
 
@@ -258,18 +257,14 @@ write_files:
 
       wget -q -O- https://romanzey.de/pgp.txt | gpg --import -
 
-      cd /home/electrs
-      git clone --branch ${ELECTRS_VERSION} https://github.com/romanz/electrs.git
-      cd electrs
+      git clone --branch ${ELECTRS_VERSION} https://github.com/romanz/electrs.git code
+      cd code
       git verify-tag ${ELECTRS_VERSION}
 
       cargo build --locked --release
-      install -m 0755 -o root -g root -t /usr/local/bin ./target/release/electrs
 
-      mkdir /home/electrs/data
-      chown -R electrs:electrs /home/electrs
-
-      systemctl enable electrs.service
+      cd ..
+      mkdir data
   - path: /etc/electrs/electrs.conf
     owner: electrs:electrs
     defer: true
@@ -385,8 +380,8 @@ write_files:
       [Install]
       WantedBy=multi-user.target
 
-apt_update: true
-apt_upgrade: true
+package_update: true
+package_upgrade: true
 
 apt:
   sources:
@@ -433,9 +428,11 @@ runcmd:
   - su -c "bash -x /home/bitcoin/bitcoin-setup.sh" - bitcoin
   - make -C /home/bitcoin/code/build install
   - systemctl enable bitcoin.service
-  - bash -x /run/electrs-setup.sh
+  - su -c "bash -x /home/electrs/electrs-setup.sh" - electrs
+  - install -m 0755 -o root -g root -t /usr/local/bin /home/electrs/code/target/release/electrs
+  - systemctl enable electrs.service
   - bash -x /run/btcexp-setup.sh
-  - openssl req -x509 -nodes -newkey rsa:4096 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj "/CN=localhost" -days 3650
+  - openssl req -x509 -nodes -newkey rsa:4096 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj "/O=AutoNode" -addext "basicConstraints=critical,CA:TRUE,pathlen:0" -addext "subjectAltName = DNS:blackbox.lan,DNS:blackbox.vpn,IP:192.168.1.44,IP:192.168.21.1" -days 36500
   - nginx -t
   - systemctl enable i2pd.service
   - ufw default deny incoming
