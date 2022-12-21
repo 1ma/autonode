@@ -84,7 +84,7 @@ write_files:
       sudo install -m 0755 -o root -g root -t /usr/local/bin /home/electrs/code/target/release/electrs
 
       # Install Core Lightning binaries in /usr/local/bin
-      sudo make -C /home/cln/code install
+      sudo make -C /home/cln/core-lightning install
 
       # Install Sparrow Server
       wget -q -O- https://keybase.io/craigraw/pgp_keys.asc | gpg --import
@@ -469,18 +469,28 @@ write_files:
       mkdir .bitcoin
       echo "datadir=/home/bitcoin/data" > .bitcoin/bitcoin.conf
 
-      export CLN_VERSION=v22.11.1
-      export LDFLAGS="-s"
-
       pip3 install mako poetry
       source .profile
 
+      export CLN_REST_VERSION=v0.9.0
+
+      wget -q -O- https://keybase.io/suheb/pgp_keys.asc | gpg --import -
+      git clone https://github.com/Ride-The-Lightning/c-lightning-REST
+      cd c-lightning-REST
+      git checkout ${CLN_REST_VERSION}
+      git verify-tag ${CLN_REST_VERSION}
+      npm install
+
+      export CLN_VERSION=v22.11.1
+      export LDFLAGS="-s"
+
+      cd $HOME
       wget -q -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/cdecker.txt | gpg --import -
       wget -q -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/niftynei.txt | gpg --import -
       wget -q -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/rustyrussell.txt | gpg --import -
-      git clone https://github.com/ElementsProject/lightning code
+      git clone https://github.com/ElementsProject/lightning core-lightning
 
-      cd code
+      cd core-lightning
       git checkout ${CLN_VERSION}
       git verify-tag ${CLN_VERSION}
       poetry install
@@ -526,7 +536,11 @@ write_files:
       addr=statictor:127.0.0.1:9051/torport=9736
       always-use-proxy=true
 
-      plugin-dir=/home/cln/.lightning/plugins
+      # c-lightning-REST options
+      rest-port=3001
+      rest-docport=4001
+      rest-protocol=http
+      #rest-bind=127.0.0.1 # pending merge https://github.com/Ride-The-Lightning/c-lightning-REST/pull/151
   - path: /lib/systemd/system/cln.service
     owner: root:root
     permissions: '0644'
@@ -539,7 +553,9 @@ write_files:
       After=network-online.target
 
       [Service]
-      ExecStart=/bin/sh -c 'lightningd --conf=/home/cln/config.txt'
+      ExecStart=/bin/sh -c 'lightningd \
+                              --plugin=/home/cln/c-lightning-REST/plugin.js \
+                              --conf=/home/cln/config.txt'
 
       ExecStop=/bin/sh -c 'lightning-cli stop'
 
