@@ -406,6 +406,18 @@ write_files:
           proxy_pass http://127.0.0.1:3002;
         }
       }
+  - path: /etc/nginx/sites-enabled/cln-rest-reverse-proxy.conf
+    owner: root:root
+    defer: true
+    permissions: '0644'
+    content: |
+      server {
+        listen 3004 ssl;
+        error_page 497 =301 https://$host:$server_port$request_uri;
+        location / {
+          proxy_pass http://127.0.0.1:3001;
+        }
+      }
   - path: /home/btcexp/btcexp-setup.sh
     owner: btcexp:btcexp
     defer: true

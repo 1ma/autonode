@@ -12,11 +12,11 @@ A [cloud-init](https://cloud-init.io) template to build Bitcoin nodes automatica
 
 | Service            | Version  | Local Ports (127.0.0.1) | Tor Hidden Service | Nginx (0.0.0.0, TLS) | Depends on            |
 |--------------------|----------|-------------------------|--------------------|----------------------|-----------------------|
-| [Bitcoin Core]     | v23.1    | :8332 :8333             | :8333              | No                   | Nothing               |
+| [Bitcoin Core]     | v23.1    | :8332 (rpc) :8333       | :8333              | No                   | Nothing               |
 | [Electrs Server]   | v0.9.10  | :50001                  | :50001             | :50002               | Bitcoin Core          |
 | [BTC RPC Explorer] | v3.3.0   | :3002                   | :80                | :3003                | Bitcoin Core, Electrs |
 | [c-lightning]      | v22.11.1 | :9736                   | :9736              | No                   | Bitcoin Core          |
-| [c-lightning-REST] | v0.9.0   | :3001 :4001 (doc)       | :3001              | Not yet              | c-lightning           |
+| [c-lightning-REST] | v0.9.0   | :3001 :4001 (doc)       | :3001              | :3004                | c-lightning           |
 
 The OpenSSH server is also exposed as a Tor hidden service on port 22.
 
@@ -58,12 +58,10 @@ The OpenSSH server is also exposed as a Tor hidden service on port 22.
 systemctl status bitcoin.service
 systemctl status electrs.service
 systemctl status btcexp.service
+systemctl status cln.service
 
-journalctl -f -u bitcoin.service
-journalctl -f -u electrs.service
-journalctl -f -u btcexp.service
-
-bitcoin-cli -netinfo 4
+bitcoin-cli -getinfo
+lightning-cli getinfo
 ```
 
 ### Lock down admin user
