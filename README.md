@@ -12,7 +12,7 @@ A [cloud-init](https://cloud-init.io) template to build Bitcoin nodes automatica
 
 | Service            | Version  | Local Ports (127.0.0.1) | Tor Hidden Service | Nginx (0.0.0.0, TLS) | Depends on            |
 |--------------------|----------|-------------------------|--------------------|----------------------|-----------------------|
-| [Bitcoin Core]     | v23.0    | :8332 :8333             | :8333              | No                   | Nothing               |
+| [Bitcoin Core]     | v23.1    | :8332 :8333             | :8333              | No                   | Nothing               |
 | [Electrs Server]   | v0.9.10  | :50001                  | :50001             | :50002               | Bitcoin Core          |
 | [BTC RPC Explorer] | v3.3.0   | :3002                   | :80                | :3003                | Bitcoin Core, Electrs |
 | [c-lightning]      | v22.11.1 | :9736                   | :9736              | No                   | Bitcoin Core          |
