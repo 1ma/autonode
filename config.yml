@@ -122,6 +122,7 @@ write_files:
       sudo systemctl enable bitcoin.service
       sudo systemctl enable btcexp.service
       sudo systemctl enable electrs.service
+      sudo systemctl enable cln.service
       sudo systemctl enable i2pd.service
   - path: /home/bitcoin/bitcoin-setup.sh
     owner: bitcoin:bitcoin
@@ -212,7 +213,6 @@ write_files:
       # Initial block download optimizations
       # Comment them out and restart after full sync
       dbcache=12288
-      blocksonly=1
 
       # Barcelona Bitcoin Only community node
       addnode=jr77cwjarx5rba4x3hahafvjpkxdfuj7iiyctro47clguea7uzqhblad.onion:8333
