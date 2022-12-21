@@ -14,12 +14,17 @@ users:
     shell: /bin/bash
 
   - name: electrs
-    gecos: electrs system user
+    gecos: Rust Electrum Server system user
     groups: bitcoin
     shell: /bin/bash
 
   - name: btcexp
     gecos: BTC-RPC-Explorer system user
+    groups: bitcoin
+    shell: /bin/bash
+
+  - name: cln
+    gecos: Core Lightning system user
     groups: bitcoin
     shell: /bin/bash
 
@@ -62,6 +67,10 @@ write_files:
 
       set -euo pipefail
 
+      # Set up bitcoin-cli
+      mkdir .bitcoin
+      echo "datadir=/home/bitcoin/data" > .bitcoin/bitcoin.conf
+
       # Add bitcoin user to the debian-tor group
       sudo usermod -aG debian-tor bitcoin
 
@@ -70,6 +79,19 @@ write_files:
 
       # Install electrs binary
       sudo install -m 0755 -o root -g root -t /usr/local/bin /home/electrs/code/target/release/electrs
+
+      # Install Core Lightning binaries in /usr/local/bin
+      sudo make -C /home/cln/code install
+
+      # Install Sparrow Server
+      wget -q -O- https://keybase.io/craigraw/pgp_keys.asc | gpg --import
+      wget -q https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-server_1.7.1-1_amd64.deb
+      wget -q https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-1.7.1-manifest.txt
+      wget -q https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-1.7.1-manifest.txt.asc
+      gpg --verify sparrow-1.7.1-manifest.txt.asc sparrow-1.7.1-manifest.txt
+      sha256sum --ignore-missing --check sparrow-1.7.1-manifest.txt
+      sudo dpkg -i sparrow-server_1.7.1-1_amd64.deb
+      sudo ln -s /opt/sparrow/bin/Sparrow /usr/local/bin/Sparrow
 
       # Create self-signed certificate for HTTPS sites and test nginx configuration
       sudo openssl req \
@@ -98,12 +120,6 @@ write_files:
       sudo systemctl enable btcexp.service
       sudo systemctl enable electrs.service
       sudo systemctl enable i2pd.service
-  - path: /home/satoshi/.bitcoin/bitcoin.conf
-    owner: satoshi:satoshi
-    defer: true
-    permissions: '0644'
-    content: |
-      datadir=/home/bitcoin/data
   - path: /home/bitcoin/bitcoin-setup.sh
     owner: bitcoin:bitcoin
     defer: true
@@ -309,6 +325,9 @@ write_files:
 
       set -euo pipefail
 
+      wget -q -O- https://sh.rustup.rs | sh -s -- -y
+      source "$HOME/.cargo/env"
+
       export ELECTRS_VERSION=v0.9.10
 
       wget -q -O- https://romanzey.de/pgp.txt | gpg --import -
@@ -433,6 +452,34 @@ write_files:
 
       [Install]
       WantedBy=multi-user.target
+  - path: /home/cln/cln-setup.sh
+    owner: cln:cln
+    defer: true
+    permissions: '0755'
+    content: |
+      #!/usr/bin/env bash
+
+      set -euo pipefail
+
+      mkdir .bitcoin data
+      echo "datadir=/home/bitcoin/data" > .bitcoin/bitcoin.conf
+
+      export CLN_VERSION=v22.11.1
+      export LDFLAGS="-s"
+
+      pip3 install mako poetry
+      source .profile
+
+      wget -q -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/cdecker.txt | gpg --import -
+      wget -q -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/nitfynei.txt | gpg --import -
+      wget -q -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/rustyrussell.txt | gpg --import -
+      git clone --branch ${CLN_VERSION} https://github.com/ElementsProject/lightning code
+      cd code
+      git verify-tag ${CLN_VERSION}
+
+      poetry install
+      ./configure --enable-experimental-features
+      make -j$(nproc)
 
 package_update: true
 package_upgrade: true
@@ -456,31 +503,37 @@ packages:
   - autoconf
   - automake
   - build-essential
-  - cargo
   - clang
   - cmake
   - fail2ban
+  - gettext
   - git
   - i2pd
   - libboost-filesystem-dev
   - libboost-system-dev
   - libboost-thread-dev
   - libevent-dev
+  - libgmp-dev
+  - libsodium-dev
   - libsqlite3-dev
   - libtool
   - net-tools
   - nginx
   - nodejs
   - pkg-config
+  - python3-dev
+  - python3-pip
   - tmux
   - tor
   - ufw
   - wireguard
+  - zlib1g-dev
 
 runcmd:
   - su -c "bash -x /home/bitcoin/bitcoin-setup.sh" - bitcoin
   - su -c "bash -x /home/electrs/electrs-setup.sh" - electrs
   - su -c "bash -x /home/btcexp/btcexp-setup.sh" - btcexp
+  - su -c "bash -x /home/cln/cln-setup.sh" - cln
   - su -c "bash -x /home/satoshi/superuser-setup.sh" - satoshi
 
 power_state:
