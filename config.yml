@@ -30,7 +30,7 @@ users:
 
   - name: satoshi
     gecos: Node operator account
-    groups: adm, bitcoin, cdrom, dip, lxd, plugdev, sudo
+    groups: adm, bitcoin, cdrom, cln, dip, lxd, plugdev, sudo
     shell: /bin/bash
     ssh_import_id:
       - gh:1ma
@@ -71,8 +71,11 @@ write_files:
       mkdir .bitcoin
       echo "datadir=/home/bitcoin/data" > .bitcoin/bitcoin.conf
 
-      # Add bitcoin user to the debian-tor group
+      ln -s /home/cln/.lightning .lightning
+
+      # Add bitcoin and cln users to the debian-tor group
       sudo usermod -aG debian-tor bitcoin
+      sudo usermod -aG debian-tor cln
 
       # Install bitcoin binaries in /usr/local/bin
       sudo make -C /home/bitcoin/code/build install
@@ -218,7 +221,7 @@ write_files:
     permissions: '0644'
     content: |
       [Unit]
-      Description=Bitcoin daemon
+      Description=Bitcoin Core
       Documentation=https://github.com/bitcoin/bitcoin/blob/master/doc/init.md
 
       # https://www.freedesktop.org/wiki/Software/systemd/NetworkTarget/
@@ -332,8 +335,9 @@ write_files:
 
       wget -q -O- https://romanzey.de/pgp.txt | gpg --import -
 
-      git clone --branch ${ELECTRS_VERSION} https://github.com/romanz/electrs.git code
+      git clone https://github.com/romanz/electrs.git code
       cd code
+      git checkout ${ELECTRS_VERSION}
       git verify-tag ${ELECTRS_VERSION}
 
       cargo build --locked --release
@@ -362,7 +366,7 @@ write_files:
     permissions: '0644'
     content: |
       [Unit]
-      Description=Electrs daemon
+      Description=Rust Electrum Server
       After=bitcoin.service
       PartOf=bitcoin.service
 
@@ -411,8 +415,9 @@ write_files:
 
       wget -q -O- https://github.com/janoside.gpg | gpg --import -
 
-      git clone --branch ${BTCEXP_VERSION} https://github.com/janoside/btc-rpc-explorer.git code
+      git clone https://github.com/janoside/btc-rpc-explorer.git code
       cd code
+      git checkout ${BTCEXP_VERSION}
       git verify-commit ${BTCEXP_VERSION}
 
       cat <<'EOF' > .env
@@ -461,7 +466,7 @@ write_files:
 
       set -euo pipefail
 
-      mkdir .bitcoin data
+      mkdir .bitcoin
       echo "datadir=/home/bitcoin/data" > .bitcoin/bitcoin.conf
 
       export CLN_VERSION=v22.11.1
@@ -471,15 +476,91 @@ write_files:
       source .profile
 
       wget -q -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/cdecker.txt | gpg --import -
-      wget -q -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/nitfynei.txt | gpg --import -
+      wget -q -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/niftynei.txt | gpg --import -
       wget -q -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/rustyrussell.txt | gpg --import -
-      git clone --branch ${CLN_VERSION} https://github.com/ElementsProject/lightning code
-      cd code
-      git verify-tag ${CLN_VERSION}
+      git clone https://github.com/ElementsProject/lightning code
 
+      cd code
+      git checkout ${CLN_VERSION}
+      git verify-tag ${CLN_VERSION}
       poetry install
       ./configure --enable-experimental-features
       make -j$(nproc)
+
+      cd $HOME
+      mkdir -p .lightning/bitcoin
+      chmod 750 .lightning/bitcoin
+      chmod 750 .lightning
+  - path: /home/cln/config.txt
+    owner: cln:cln
+    defer: true
+    permissions: '0640'
+    content: |
+      alias=blackbox
+      rgb=009900
+
+      network=bitcoin
+      log-level=info
+
+      rpc-file-mode=0660
+
+      # default fees and channel min size
+      fee-base=0
+      fee-per-satoshi=0
+      min-capacity-sat=1000000
+
+      ## optional
+      # wumbo channels
+      large-channels
+      # channel confirmations needed
+      funding-confirms=2
+      # autoclean (86400=daily)
+      autocleaninvoice-cycle=86400
+      autocleaninvoice-expired-by=86400
+
+      wallet=sqlite3:///home/cln/lightning.sqlite3
+
+      # network
+      proxy=127.0.0.1:9050
+      bind-addr=127.0.0.1:9736
+      addr=statictor:127.0.0.1:9051/torport=9736
+      always-use-proxy=true
+
+      plugin-dir=/home/cln/.lightning/plugins
+  - path: /lib/systemd/system/cln.service
+    owner: root:root
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Core Lightning
+      Requires=bitcoin.service
+      After=bitcoin.service
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      ExecStart=/bin/sh -c 'lightningd --conf=/home/cln/config.txt'
+
+      ExecStop=/bin/sh -c 'lightning-cli stop'
+
+      RuntimeDirectory=lightningd
+
+      User=cln
+
+      Type=exec
+      PIDFile=/home/cln/.lightning/lightningd-bitcoin.pid
+      Restart=on-failure
+      TimeoutSec=240
+      RestartSec=30
+
+      # hardening measures
+      PrivateTmp=true
+      ProtectSystem=full
+      NoNewPrivileges=true
+      PrivateDevices=true
+
+      [Install]
+      WantedBy=multi-user.target
 
 package_update: true
 package_upgrade: true
@@ -525,6 +606,7 @@ packages:
   - python3-pip
   - tmux
   - tor
+  - tree
   - ufw
   - wireguard
   - zlib1g-dev
