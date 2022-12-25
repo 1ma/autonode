@@ -28,6 +28,11 @@ users:
     groups: bitcoin
     shell: /bin/bash
 
+  - name: rtl
+    gecos: Ride The Lightning system user
+    groups: cln
+    shell: /bin/bash
+
   - name: satoshi
     gecos: Node operator account
     groups: adm, bitcoin, cdrom, cln, dip, lxd, plugdev, sudo
@@ -90,6 +95,7 @@ runcmd:
   - su -c "bash -x /home/electrs/electrs-setup.sh" - electrs
   - su -c "bash -x /home/btcexp/btcexp-setup.sh" - btcexp
   - su -c "bash -x /home/cln/cln-setup.sh" - cln
+  - su -c "bash -x /home/rtl/rtl-setup.sh" - rtl
   - su -c "bash -x /home/satoshi/superuser-setup.sh" - satoshi
 
 power_state:
@@ -121,6 +127,10 @@ write_files:
       HiddenServiceDir /var/lib/tor/cln-rest/
       HiddenServiceVersion 3
       HiddenServicePort 3001 127.0.0.1:3001
+
+      HiddenServiceDir /var/lib/tor/rtl/
+      HiddenServiceVersion 3
+      HiddenServicePort 3000 127.0.0.1:2999
   - path: /home/bitcoin/bitcoin-setup.sh
     owner: bitcoin:bitcoin
     defer: true
@@ -515,7 +525,7 @@ write_files:
     defer: true
     permissions: '0640'
     content: |
-      alias=blackbox
+      alias=autonode
       rgb=009900
 
       network=bitcoin
@@ -586,6 +596,90 @@ write_files:
 
       [Install]
       WantedBy=multi-user.target
+  - path: /lib/systemd/system/rtl.service
+    owner: root:root
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Ride The Lightning
+      After=network.target cln.service
+
+      [Service]
+      Type=exec
+      WorkingDirectory=/home/rtl/code
+      ExecStart=node rtl.js
+      User=rtl
+
+      Restart=always
+      RestartSec=30
+
+      [Install]
+      WantedBy=multi-user.target
+  - path: /etc/nginx/sites-enabled/btcexp-reverse-proxy.conf
+    owner: root:root
+    defer: true
+    permissions: '0644'
+    content: |
+      server {
+        listen 3000 ssl;
+        error_page 497 =301 https://$host:$server_port$request_uri;
+        location / {
+          proxy_pass http://127.0.0.1:2999;
+        }
+      }
+  - path: /home/rtl/RTL-Config.json
+    owner: rtl:rtl
+    defer: true
+    permissions: '0640'
+    content: |
+      {
+        "multiPass": "rtl",
+        "port": "2999",
+        "defaultNodeIndex": 1,
+        "SSO": {
+          "rtlSSO": 0,
+          "rtlCookiePath": "",
+          "logoutRedirectLink": ""
+        },
+        "nodes": [
+          {
+            "index": 1,
+            "lnNode": "autonode",
+            "lnImplementation": "CLN",
+            "Authentication": {
+              "macaroonPath": "/home/cln/c-lightning-REST/certs",
+              "configPath": "/home/cln/config.txt"
+            },
+            "Settings": {
+              "userPersona": "OPERATOR",
+              "themeMode": "NIGHT",
+              "themeColor": "INDIGO",
+              "channelBackupPath": "",
+              "logLevel": "ERROR",
+              "lnServerUrl": "http://localhost:3001",
+              "fiatConversion": false
+            }
+          }
+        ]
+      }
+  - path: /home/rtl/rtl-setup.sh
+    owner: rtl:rtl
+    defer: true
+    permissions: '0755'
+    content: |
+      #!/usr/bin/env bash
+
+      set -euo pipefail
+
+      export RTL_VERSION=v0.13.3
+
+      wget -q -O- https://keybase.io/suheb/pgp_keys.asc | gpg --import -
+      git clone https://github.com/Ride-The-Lightning/RTL.git code
+      cd code
+      git checkout ${RTL_VERSION}
+      git verify-tag ${RTL_VERSION}
+      npm install --omit=dev --legacy-peer-deps
+      mv ../RTL-Config.json .
   - path: /home/satoshi/superuser-setup.sh
     owner: satoshi:satoshi
     defer: true
@@ -641,6 +735,7 @@ write_files:
       sudo ufw default deny incoming
       sudo ufw default allow outgoing
       sudo ufw allow 22/tcp comment 'allow SSH connections'
+      sudo ufw allow 3000/tcp comment 'allow RTL SSL'
       sudo ufw allow 3003/tcp comment 'allow BTC RPC Explorer SSL'
       sudo ufw allow 50002/tcp comment 'allow Electrum SSL'
       sudo ufw logging off
@@ -651,4 +746,5 @@ write_files:
       sudo systemctl enable btcexp.service
       sudo systemctl enable electrs.service
       sudo systemctl enable cln.service
+      sudo systemctl enable rtl.service
       sudo systemctl enable i2pd.service
