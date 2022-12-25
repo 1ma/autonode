@@ -36,6 +36,65 @@ users:
       - gh:1ma
     sudo: ALL=(ALL) NOPASSWD:ALL
 
+apt:
+  sources:
+    nginx:
+      source: "deb http://nginx.org/packages/mainline/ubuntu jammy nginx"
+      keyid: 573B FD6B 3D8F BC64 1079 A6AB ABF5 BD82 7BD9 BF62
+    nodesource:
+      source: "deb https://deb.nodesource.com/node_18.x jammy main"
+      keyid: 9FD3 B784 BC1C 6FC3 1A8A 0A1C 1655 A0AB 6857 6280
+    tor:
+      source: "deb https://deb.torproject.org/torproject.org jammy main"
+      keyid: A3C4 F0F9 79CA A22C DBA8 F512 EE8C BC9E 886D DD89
+    i2pd:
+      source: "ppa:purplei2p/i2pd"
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - apt-transport-https
+  - autoconf
+  - automake
+  - build-essential
+  - clang
+  - cmake
+  - fail2ban
+  - gettext
+  - git
+  - i2pd
+  - libboost-filesystem-dev
+  - libboost-system-dev
+  - libboost-thread-dev
+  - libevent-dev
+  - libgmp-dev
+  - libsodium-dev
+  - libsqlite3-dev
+  - libtool
+  - net-tools
+  - nginx
+  - nodejs
+  - pkg-config
+  - python3-dev
+  - python3-pip
+  - tmux
+  - tor
+  - tree
+  - ufw
+  - wireguard
+  - zlib1g-dev
+
+runcmd:
+  - su -c "bash -x /home/bitcoin/bitcoin-setup.sh" - bitcoin
+  - su -c "bash -x /home/electrs/electrs-setup.sh" - electrs
+  - su -c "bash -x /home/btcexp/btcexp-setup.sh" - btcexp
+  - su -c "bash -x /home/cln/cln-setup.sh" - cln
+  - su -c "bash -x /home/satoshi/superuser-setup.sh" - satoshi
+
+power_state:
+  mode: reboot
+
 write_files:
   - path: /etc/tor/torrc
     owner: root:root
@@ -62,72 +121,6 @@ write_files:
       HiddenServiceDir /var/lib/tor/cln-rest/
       HiddenServiceVersion 3
       HiddenServicePort 3001 127.0.0.1:3001
-  - path: /home/satoshi/superuser-setup.sh
-    owner: satoshi:satoshi
-    defer: true
-    permissions: '0755'
-    content: |
-      #!/usr/bin/env bash
-
-      set -euo pipefail
-
-      # Set up bitcoin-cli
-      mkdir .bitcoin
-      echo "datadir=/home/bitcoin/data" > .bitcoin/bitcoin.conf
-
-      ln -s /home/cln/.lightning .lightning
-
-      # Add bitcoin and cln users to the debian-tor group
-      sudo usermod -aG debian-tor bitcoin
-      sudo usermod -aG debian-tor cln
-
-      # Install bitcoin binaries in /usr/local/bin
-      sudo make -C /home/bitcoin/code/build install
-
-      # Install electrs binary
-      sudo install -m 0755 -o root -g root -t /usr/local/bin /home/electrs/code/target/release/electrs
-
-      # Install Core Lightning binaries in /usr/local/bin
-      sudo make -C /home/cln/core-lightning install
-
-      # Install Sparrow Server
-      wget -q -O- https://keybase.io/craigraw/pgp_keys.asc | gpg --import
-      wget -q https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-server_1.7.1-1_amd64.deb
-      wget -q https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-1.7.1-manifest.txt
-      wget -q https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-1.7.1-manifest.txt.asc
-      gpg --verify sparrow-1.7.1-manifest.txt.asc sparrow-1.7.1-manifest.txt
-      sha256sum --ignore-missing --check sparrow-1.7.1-manifest.txt
-      sudo dpkg -i sparrow-server_1.7.1-1_amd64.deb
-      sudo ln -s /opt/sparrow/bin/Sparrow /usr/local/bin/Sparrow
-
-      # Create self-signed certificate for HTTPS sites and test nginx configuration
-      sudo openssl req \
-        -x509 \
-        -nodes \
-        -newkey rsa:4096 \
-        -keyout /etc/ssl/private/nginx-selfsigned.key \
-        -out /etc/ssl/certs/nginx-selfsigned.crt \
-        -subj "/O=AutoNode" \
-        -addext "basicConstraints=critical,CA:TRUE,pathlen:0" \
-        -addext "subjectAltName = DNS:blackbox.lan,DNS:blackbox.vpn,IP:192.168.1.44,IP:192.168.21.1" \
-        -days 36500
-      sudo nginx -t
-
-      # Set up node firewall
-      sudo ufw default deny incoming
-      sudo ufw default allow outgoing
-      sudo ufw allow 22/tcp comment 'allow SSH connections'
-      sudo ufw allow 3003/tcp comment 'allow BTC RPC Explorer SSL'
-      sudo ufw allow 50002/tcp comment 'allow Electrum SSL'
-      sudo ufw logging off
-      sudo ufw enable
-
-      # Enable systemd services
-      sudo systemctl enable bitcoin.service
-      sudo systemctl enable btcexp.service
-      sudo systemctl enable electrs.service
-      sudo systemctl enable cln.service
-      sudo systemctl enable i2pd.service
   - path: /home/bitcoin/bitcoin-setup.sh
     owner: bitcoin:bitcoin
     defer: true
@@ -593,62 +586,69 @@ write_files:
 
       [Install]
       WantedBy=multi-user.target
+  - path: /home/satoshi/superuser-setup.sh
+    owner: satoshi:satoshi
+    defer: true
+    permissions: '0755'
+    content: |
+      #!/usr/bin/env bash
 
-package_update: true
-package_upgrade: true
+      set -euo pipefail
 
-apt:
-  sources:
-    nginx:
-      source: "deb http://nginx.org/packages/mainline/ubuntu jammy nginx"
-      keyid: 573B FD6B 3D8F BC64 1079 A6AB ABF5 BD82 7BD9 BF62
-    nodesource:
-      source: "deb https://deb.nodesource.com/node_18.x jammy main"
-      keyid: 9FD3 B784 BC1C 6FC3 1A8A 0A1C 1655 A0AB 6857 6280
-    tor:
-      source: "deb https://deb.torproject.org/torproject.org jammy main"
-      keyid: A3C4 F0F9 79CA A22C DBA8 F512 EE8C BC9E 886D DD89
-    i2pd:
-      source: "ppa:purplei2p/i2pd"
+      # Set up bitcoin-cli
+      mkdir .bitcoin
+      echo "datadir=/home/bitcoin/data" > .bitcoin/bitcoin.conf
 
-packages:
-  - apt-transport-https
-  - autoconf
-  - automake
-  - build-essential
-  - clang
-  - cmake
-  - fail2ban
-  - gettext
-  - git
-  - i2pd
-  - libboost-filesystem-dev
-  - libboost-system-dev
-  - libboost-thread-dev
-  - libevent-dev
-  - libgmp-dev
-  - libsodium-dev
-  - libsqlite3-dev
-  - libtool
-  - net-tools
-  - nginx
-  - nodejs
-  - pkg-config
-  - python3-dev
-  - python3-pip
-  - tmux
-  - tor
-  - tree
-  - ufw
-  - wireguard
-  - zlib1g-dev
+      ln -s /home/cln/.lightning .lightning
 
-runcmd:
-  - su -c "bash -x /home/bitcoin/bitcoin-setup.sh" - bitcoin
-  - su -c "bash -x /home/electrs/electrs-setup.sh" - electrs
-  - su -c "bash -x /home/btcexp/btcexp-setup.sh" - btcexp
-  - su -c "bash -x /home/cln/cln-setup.sh" - cln
-  - su -c "bash -x /home/satoshi/superuser-setup.sh" - satoshi
+      # Add bitcoin and cln users to the debian-tor group
+      sudo usermod -aG debian-tor bitcoin
+      sudo usermod -aG debian-tor cln
 
-power_state:
-  mode: reboot
+      # Install bitcoin binaries in /usr/local/bin
+      sudo make -C /home/bitcoin/code/build install
+
+      # Install electrs binary
+      sudo install -m 0755 -o root -g root -t /usr/local/bin /home/electrs/code/target/release/electrs
+
+      # Install Core Lightning binaries in /usr/local/bin
+      sudo make -C /home/cln/core-lightning install
+
+      # Install Sparrow Server
+      wget -q -O- https://keybase.io/craigraw/pgp_keys.asc | gpg --import
+      wget -q https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-server_1.7.1-1_amd64.deb
+      wget -q https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-1.7.1-manifest.txt
+      wget -q https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-1.7.1-manifest.txt.asc
+      gpg --verify sparrow-1.7.1-manifest.txt.asc sparrow-1.7.1-manifest.txt
+      sha256sum --ignore-missing --check sparrow-1.7.1-manifest.txt
+      sudo dpkg -i sparrow-server_1.7.1-1_amd64.deb
+      sudo ln -s /opt/sparrow/bin/Sparrow /usr/local/bin/Sparrow
+
+      # Create self-signed certificate for HTTPS sites and test nginx configuration
+      sudo openssl req \
+        -x509 \
+        -nodes \
+        -newkey rsa:4096 \
+        -keyout /etc/ssl/private/nginx-selfsigned.key \
+        -out /etc/ssl/certs/nginx-selfsigned.crt \
+        -subj "/O=AutoNode" \
+        -addext "basicConstraints=critical,CA:TRUE,pathlen:0" \
+        -addext "subjectAltName = DNS:blackbox.lan,DNS:blackbox.vpn,IP:192.168.1.44,IP:192.168.21.1" \
+        -days 36500
+      sudo nginx -t
+
+      # Set up node firewall
+      sudo ufw default deny incoming
+      sudo ufw default allow outgoing
+      sudo ufw allow 22/tcp comment 'allow SSH connections'
+      sudo ufw allow 3003/tcp comment 'allow BTC RPC Explorer SSL'
+      sudo ufw allow 50002/tcp comment 'allow Electrum SSL'
+      sudo ufw logging off
+      sudo ufw enable
+
+      # Enable systemd services
+      sudo systemctl enable bitcoin.service
+      sudo systemctl enable btcexp.service
+      sudo systemctl enable electrs.service
+      sudo systemctl enable cln.service
+      sudo systemctl enable i2pd.service
