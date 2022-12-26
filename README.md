@@ -51,6 +51,9 @@ The OpenSSH server is also exposed as a Tor hidden service on port 22.
 
 ### Use it on bare metal (hard)
 
+`python3 -m http.server 3000`
+`autoinstall ds=nocloud-net\;s=http://192.168.1.62:3000/ ---`
+
 ## Post Installation
 
 ### Check Services Health
