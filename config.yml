@@ -44,7 +44,7 @@ users:
 apt:
   sources:
     nginx:
-      source: "deb http://nginx.org/packages/mainline/ubuntu jammy nginx"
+      source: "deb https://nginx.org/packages/mainline/ubuntu jammy nginx"
       keyid: 573B FD6B 3D8F BC64 1079 A6AB ABF5 BD82 7BD9 BF62
     nodesource:
       source: "deb https://deb.nodesource.com/node_18.x jammy main"
@@ -141,33 +141,30 @@ write_files:
       set -euo pipefail
 
       export BITCOIN_VERSION=23.1
+      export BDB_PREFIX="$(pwd)/code/db4"
       export CFLAGS="-O2 --static -static -fPIC"
       export CXXFLAGS="-O2 --static -static -fPIC"
       export LDFLAGS="-s -static-libgcc -static-libstdc++"
 
-      mkdir code data
+      mkdir data
 
-      cd code
       wget -q https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS
       wget -q https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS.asc
       wget -q https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/bitcoin-${BITCOIN_VERSION}.tar.gz
 
       # TODO that's trashy, rethink approach
-      wget -q -O- https://raw.githubusercontent.com/1ma/dockertronics/master/bitcoin/developer_pubkeys.pem | gpg --import -
+      wget -O- https://raw.githubusercontent.com/1ma/dockertronics/master/bitcoin/developer_pubkeys.pem | gpg --import -
 
       gpg --verify SHA256SUMS.asc SHA256SUMS
       sha256sum --ignore-missing -c SHA256SUMS
 
       tar zxf bitcoin-${BITCOIN_VERSION}.tar.gz
-      ./bitcoin-${BITCOIN_VERSION}/autogen.sh
+      mv bitcoin-${BITCOIN_VERSION} code
 
-      mkdir build
-      cd build
-
-      ../bitcoin-${BITCOIN_VERSION}/contrib/install_db4.sh $(pwd)
-
-      export BDB_PREFIX="$(pwd)/db4"
-      ../bitcoin-${BITCOIN_VERSION}/configure \
+      cd code
+      ./autogen.sh
+      ./contrib/install_db4.sh $(pwd)
+      ./configure \
         BDB_LIBS="-L${BDB_PREFIX}/lib -ldb_cxx-4.8" \
         BDB_CFLAGS="-I${BDB_PREFIX}/include" \
         --disable-bench \
@@ -432,7 +429,7 @@ write_files:
 
       export BTCEXP_VERSION=v3.3.0
 
-      wget -q -O- https://github.com/janoside.gpg | gpg --import -
+      wget -O- https://github.com/janoside.gpg | gpg --import -
 
       git clone https://github.com/janoside/btc-rpc-explorer.git code
       cd code
@@ -504,12 +501,12 @@ write_files:
       export LDFLAGS="-s"
 
       cd $HOME
-      wget -q -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/cdecker.txt | gpg --import -
-      wget -q -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/niftynei.txt | gpg --import -
-      wget -q -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/rustyrussell.txt | gpg --import -
-      git clone https://github.com/ElementsProject/lightning core-lightning
+      wget -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/cdecker.txt | gpg --import -
+      wget -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/niftynei.txt | gpg --import -
+      wget -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/rustyrussell.txt | gpg --import -
+      git clone https://github.com/ElementsProject/lightning
 
-      cd core-lightning
+      cd lightning
       git checkout ${CLN_VERSION}
       git verify-tag ${CLN_VERSION}
       poetry install
@@ -700,19 +697,19 @@ write_files:
       sudo usermod -aG debian-tor cln
 
       # Install bitcoin binaries in /usr/local/bin
-      sudo make -C /home/bitcoin/code/build install
+      sudo make -C /home/bitcoin/code install
 
       # Install electrs binary
       sudo install -m 0755 -o root -g root -t /usr/local/bin /home/electrs/code/target/release/electrs
 
       # Install Core Lightning binaries in /usr/local/bin
-      sudo make -C /home/cln/core-lightning install
+      sudo make -C /home/cln/lightning install
 
       # Install Sparrow Server
       wget -q -O- https://keybase.io/craigraw/pgp_keys.asc | gpg --import
-      wget -q https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-server_1.7.1-1_amd64.deb
-      wget -q https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-1.7.1-manifest.txt
-      wget -q https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-1.7.1-manifest.txt.asc
+      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-server_1.7.1-1_amd64.deb
+      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-1.7.1-manifest.txt
+      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-1.7.1-manifest.txt.asc
       gpg --verify sparrow-1.7.1-manifest.txt.asc sparrow-1.7.1-manifest.txt
       sha256sum --ignore-missing --check sparrow-1.7.1-manifest.txt
       sudo dpkg -i sparrow-server_1.7.1-1_amd64.deb
