@@ -615,7 +615,7 @@ write_files:
 
       [Install]
       WantedBy=multi-user.target
-  - path: /etc/nginx/sites-enabled/btcexp-reverse-proxy.conf
+  - path: /etc/nginx/sites-enabled/rtl-reverse-proxy.conf
     owner: root:root
     defer: true
     permissions: '0644'
