@@ -130,7 +130,7 @@ write_files:
 
       HiddenServiceDir /var/lib/tor/rtl/
       HiddenServiceVersion 3
-      HiddenServicePort 3000 127.0.0.1:2999
+      HiddenServicePort 3000 127.0.0.1:3000
   - path: /home/bitcoin/bitcoin-setup.sh
     owner: bitcoin:bitcoin
     defer: true
@@ -323,7 +323,7 @@ write_files:
       }
 
       server {
-        listen 50002 ssl;
+        listen 50011 ssl;
         proxy_pass electrs;
       }
   - path: /home/electrs/electrs-setup.sh
@@ -403,7 +403,7 @@ write_files:
     permissions: '0644'
     content: |
       server {
-        listen 3003 ssl;
+        listen 3012 ssl;
         error_page 497 =301 https://$host:$server_port$request_uri;
         location / {
           proxy_pass http://127.0.0.1:3002;
@@ -415,7 +415,7 @@ write_files:
     permissions: '0644'
     content: |
       server {
-        listen 3004 ssl;
+        listen 3011 ssl;
         error_page 497 =301 https://$host:$server_port$request_uri;
         location / {
           proxy_pass http://127.0.0.1:3001;
@@ -621,10 +621,10 @@ write_files:
     permissions: '0644'
     content: |
       server {
-        listen 3000 ssl;
+        listen 3010 ssl;
         error_page 497 =301 https://$host:$server_port$request_uri;
         location / {
-          proxy_pass http://127.0.0.1:2999;
+          proxy_pass http://127.0.0.1:3000;
         }
       }
   - path: /home/rtl/RTL-Config.json
@@ -634,7 +634,7 @@ write_files:
     content: |
       {
         "multiPass": "rtl",
-        "port": "2999",
+        "port": "3000",
         "defaultNodeIndex": 1,
         "SSO": {
           "rtlSSO": 0,
@@ -735,9 +735,9 @@ write_files:
       sudo ufw default deny incoming
       sudo ufw default allow outgoing
       sudo ufw allow 22/tcp comment 'allow SSH connections'
-      sudo ufw allow 3000/tcp comment 'allow RTL SSL'
-      sudo ufw allow 3003/tcp comment 'allow BTC RPC Explorer SSL'
-      sudo ufw allow 50002/tcp comment 'allow Electrum SSL'
+      sudo ufw allow 3010/tcp comment 'allow RTL SSL'
+      sudo ufw allow 3012/tcp comment 'allow BTC RPC Explorer SSL'
+      sudo ufw allow 50011/tcp comment 'allow Electrum SSL'
       sudo ufw logging off
       sudo ufw enable
 
