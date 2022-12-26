@@ -335,15 +335,15 @@ write_files:
 
       set -euo pipefail
 
-      wget -q -O- https://sh.rustup.rs | sh -s -- -y
-      source "$HOME/.cargo/env"
-
       export ELECTRS_VERSION=v0.9.10
 
-      wget -q -O- https://romanzey.de/pgp.txt | gpg --import -
-
       git clone https://github.com/romanz/electrs.git code
+
       cd code
+      wget -q -O- https://sh.rustup.rs | sh -s -- -y --default-toolchain $(cat rust-toolchain)
+      source "$HOME/.cargo/env"
+
+      wget -q -O- https://romanzey.de/pgp.txt | gpg --import -
       git checkout ${ELECTRS_VERSION}
       git verify-tag ${ELECTRS_VERSION}
 

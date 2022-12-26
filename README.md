@@ -21,6 +21,12 @@ A [cloud-init](https://cloud-init.io) template to build Bitcoin nodes automatica
 
 The OpenSSH server is also exposed as a Tor hidden service on port 22.
 
+### Other Software
+
+* Sparrow Server 1.7.1
+* WireGuard
+* tmux
+
 ## Organization
 
 ```
