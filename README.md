@@ -49,9 +49,22 @@ The OpenSSH server is also exposed as a Tor hidden service on port 22.
 
 ## Installation
 
+In all cases using AutoNode involves providing the YAML template the first time the machine boots.
+The specific procedure depends on where you want to use AutoNode.
+
 ### Use it on a Raspberry Pi (easy)
 
 ### Use it on a cloud provider (easy)
+
+cloud-init was originally invented to provision Ubuntu servers on AWS EC2, accordingly this is one
+of the easiest installation procedures.
+
+From the EC2 panel, launch a new instance and provision enough extra storage for the blockchain.
+When you see the "User Data" form simply copy-paste the YAML template into it. Done.
+
+| ![AWS EC2 User Data form](docs/images/user-data-field.png) |
+|:--:|
+| *AWS user data form* |
 
 ### Use it on Vagrant (medium)
 
@@ -92,9 +105,12 @@ sudo rm /etc/sudoers.d/90-cloud-init-users
 
 ## FAQ
 
-### Supported OSes
+### Supported OS
 
-Ubuntu Server 22.04
+I only test and support AutoNode on the latest Ubuntu Server LTS version (currently 22.04).
+However cloud-init is supposed to work with a wide range of OSes and virtual cloud providers.
+
+I'm interested in PRs that provide support for other OSes as long as they don't break Ubuntu Server.
 
 ### cloud-init primer
 
