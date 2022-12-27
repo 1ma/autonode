@@ -76,6 +76,7 @@ packages:
   - libgmp-dev
   - libsodium-dev
   - libsqlite3-dev
+  - libssl-dev
   - libtool
   - net-tools
   - nginx
@@ -485,12 +486,19 @@ write_files:
       mkdir .bitcoin
       echo "datadir=/home/bitcoin/data" > .bitcoin/bitcoin.conf
 
+      wget -q -O- https://sh.rustup.rs | sh -s -- -y
       pip3 install mako poetry
       source .profile
 
       export CLN_REST_VERSION=v0.9.0
 
       wget -q -O- https://keybase.io/suheb/pgp_keys.asc | gpg --import -
+      wget -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/cdecker.txt | gpg --import -
+      wget -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/niftynei.txt | gpg --import -
+      wget -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/rustyrussell.txt | gpg --import -
+
+      mkdir code
+      cd code
       git clone https://github.com/Ride-The-Lightning/c-lightning-REST
       cd c-lightning-REST
       git checkout ${CLN_REST_VERSION}
@@ -500,10 +508,7 @@ write_files:
       export CLN_VERSION=v22.11.1
       export LDFLAGS="-s"
 
-      cd $HOME
-      wget -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/cdecker.txt | gpg --import -
-      wget -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/niftynei.txt | gpg --import -
-      wget -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/rustyrussell.txt | gpg --import -
+      cd ..
       git clone https://github.com/ElementsProject/lightning
 
       cd lightning
@@ -512,6 +517,11 @@ write_files:
       poetry install
       ./configure --enable-experimental-features
       make -j$(nproc)
+
+      cd ..
+      git clone https://github.com/talaia-labs/rust-teos
+      cd rust-teos
+      cargo install --path watchtower-plugin
 
       cd $HOME
       mkdir -p .lightning/bitcoin
@@ -570,8 +580,9 @@ write_files:
 
       [Service]
       ExecStart=/bin/sh -c 'lightningd \
-                              --plugin=/home/cln/c-lightning-REST/plugin.js \
-                              --conf=/home/cln/config.txt'
+                              --conf=/home/cln/config.txt \
+                              --plugin=/home/cln/code/c-lightning-REST/plugin.js \
+                              --plugin=/usr/local/bin/watchtower-client'
 
       ExecStop=/bin/sh -c 'lightning-cli stop'
 
@@ -644,7 +655,7 @@ write_files:
             "lnNode": "autonode",
             "lnImplementation": "CLN",
             "Authentication": {
-              "macaroonPath": "/home/cln/c-lightning-REST/certs",
+              "macaroonPath": "/home/cln/code/c-lightning-REST/certs",
               "configPath": "/home/cln/config.txt"
             },
             "Settings": {
@@ -702,8 +713,11 @@ write_files:
       # Install electrs binary
       sudo install -m 0755 -o root -g root -t /usr/local/bin /home/electrs/code/target/release/electrs
 
+      # Install Core Lightning Watchtower plugin
+      sudo install -m 0755 -o root -g root -t /usr/local/bin /home/cln/code/rust-teos/target/release/watchtower-client
+
       # Install Core Lightning binaries in /usr/local/bin
-      sudo make -C /home/cln/lightning install
+      sudo make -C /home/cln/code/lightning install
 
       # Install Sparrow Server
       wget -q -O- https://keybase.io/craigraw/pgp_keys.asc | gpg --import

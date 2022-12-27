@@ -69,10 +69,15 @@ systemctl status bitcoin.service
 systemctl status electrs.service
 systemctl status btcexp.service
 systemctl status cln.service
+systemctl status rtl.service
 
 bitcoin-cli -getinfo
 lightning-cli getinfo
 ```
+
+From outside the node, you can try accessing a few of the services with your web browser.
+BTC RPC Explorer and Ride The Lightning should be available straight away. On Vagrant they'll accessible
+at `https://localhost:3010` and `https://localhost:3012`
 
 ### Lock down admin user
 
