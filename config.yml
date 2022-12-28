@@ -511,9 +511,12 @@ write_files:
       ./configure --enable-experimental-features
       make -j$(nproc)
 
+      export TEOS_COMMIT=1faf361a7f35c4b75aa1681f46f0bc0d0500dc9b
+
       cd ..
       git clone https://github.com/talaia-labs/rust-teos
       cd rust-teos
+      git checkout ${TEOS_COMMIT}
       cargo install --path watchtower-plugin
 
       cd $HOME
