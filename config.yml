@@ -149,7 +149,7 @@ write_files:
       wget -q https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/bitcoin-${BITCOIN_VERSION}.tar.gz
 
       # TODO that's trashy, rethink approach
-      wget -O- https://raw.githubusercontent.com/1ma/dockertronics/master/bitcoin/developer_pubkeys.pem | gpg --import -
+      wget -O- https://blog.1mahq.com/keys/bitcoin_developers.pem | gpg --import -
 
       gpg --verify SHA256SUMS.asc SHA256SUMS
       sha256sum --ignore-missing -c SHA256SUMS
@@ -425,7 +425,7 @@ write_files:
 
       export BTCEXP_VERSION=v3.3.0
 
-      wget -O- https://github.com/janoside.gpg | gpg --import -
+      wget -O- https://blog.1mahq.com/keys/btcexp_developer.pem | gpg --import -
 
       git clone https://github.com/janoside/btc-rpc-explorer.git code
       cd code
@@ -488,9 +488,7 @@ write_files:
       export CLN_REST_VERSION=v0.9.0
 
       wget -q -O- https://keybase.io/suheb/pgp_keys.asc | gpg --import -
-      wget -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/cdecker.txt | gpg --import -
-      wget -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/niftynei.txt | gpg --import -
-      wget -O- https://raw.githubusercontent.com/ElementsProject/lightning/master/contrib/keys/rustyrussell.txt | gpg --import -
+      wget -O- https://blog.1mahq.com/keys/cln_developers.pem | gpg --import -
 
       mkdir code
       cd code
