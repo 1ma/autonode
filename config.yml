@@ -712,16 +712,6 @@ write_files:
       # Install Core Lightning binaries in /usr/local/bin
       sudo make -C /home/cln/code/lightning install
 
-      # Install Sparrow Server
-      wget -q -O- https://keybase.io/craigraw/pgp_keys.asc | gpg --import
-      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-server_1.7.1-1_amd64.deb
-      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-1.7.1-manifest.txt
-      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-1.7.1-manifest.txt.asc
-      gpg --verify sparrow-1.7.1-manifest.txt.asc sparrow-1.7.1-manifest.txt
-      sha256sum --ignore-missing --check sparrow-1.7.1-manifest.txt
-      sudo dpkg -i sparrow-server_1.7.1-1_amd64.deb
-      sudo ln -s /opt/sparrow/bin/Sparrow /usr/local/bin/Sparrow
-
       # Create self-signed certificate for HTTPS sites and test nginx configuration
       sudo openssl req \
         -x509 \
@@ -752,3 +742,13 @@ write_files:
       sudo systemctl enable cln.service
       sudo systemctl enable rtl.service
       sudo systemctl enable i2pd.service
+
+      # Install Sparrow Server
+      wget -q -O- https://keybase.io/craigraw/pgp_keys.asc | gpg --import
+      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-server_1.7.1-1_amd64.deb
+      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-1.7.1-manifest.txt
+      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-1.7.1-manifest.txt.asc
+      gpg --verify sparrow-1.7.1-manifest.txt.asc sparrow-1.7.1-manifest.txt
+      sha256sum --ignore-missing --check sparrow-1.7.1-manifest.txt
+      sudo dpkg -i sparrow-server_1.7.1-1_amd64.deb
+      sudo ln -s /opt/sparrow/bin/Sparrow /usr/local/bin/Sparrow
