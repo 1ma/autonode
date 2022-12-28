@@ -125,6 +125,9 @@ write_files:
       HiddenServiceDir /var/lib/tor/cln-rest/
       HiddenServicePort 3001 127.0.0.1:3001
 
+      HiddenServiceDir /var/lib/tor/cln-rest-doc/
+      HiddenServicePort 4001 127.0.0.1:4001
+
       HiddenServiceDir /var/lib/tor/rtl/
       HiddenServicePort 3000 127.0.0.1:3000
   - path: /home/bitcoin/bitcoin-setup.sh
@@ -412,6 +415,14 @@ write_files:
         error_page 497 =301 https://$host:$server_port$request_uri;
         location / {
           proxy_pass http://127.0.0.1:3001;
+        }
+      }
+
+      server {
+        listen 4011 ssl;
+        error_page 497 =301 https://$host:$server_port$request_uri;
+        location / {
+          proxy_pass http://127.0.0.1:4001;
         }
       }
   - path: /home/btcexp/btcexp-setup.sh
