@@ -749,6 +749,7 @@ write_files:
       sudo ufw allow 3010/tcp comment 'allow RTL SSL'
       sudo ufw allow 3012/tcp comment 'allow BTC RPC Explorer SSL'
       sudo ufw allow 50011/tcp comment 'allow Electrum SSL'
+      sudo ufw allow 51820/udp comment 'allow WireGuard traffic'
       sudo ufw logging off
       sudo ufw enable
 
