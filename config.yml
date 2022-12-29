@@ -704,6 +704,9 @@ write_files:
 
       set -euo pipefail
 
+      # Disable apt news
+      sudo pro config set apt_news=false
+
       # Set up bitcoin-cli
       mkdir .bitcoin
       echo "datadir=/home/bitcoin/data" > .bitcoin/bitcoin.conf
