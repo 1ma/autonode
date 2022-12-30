@@ -384,6 +384,7 @@ write_files:
       KillMode=process
 
       User=electrs
+      Group=electrs
 
       RuntimeDirectory=electrs
       RuntimeDirectoryMode=0710
@@ -474,7 +475,9 @@ write_files:
       [Service]
       WorkingDirectory=/home/btcexp/code
       ExecStart=/usr/bin/npm start
+
       User=btcexp
+      Group=btcexp
 
       Restart=always
       RestartSec=30
@@ -532,9 +535,12 @@ write_files:
       cargo install --path watchtower-plugin
 
       cd $HOME
-      mkdir -p .lightning/bitcoin
-      chmod 750 .lightning/bitcoin
-      chmod 750 .lightning
+      mkdir -p .lightning/bitcoin .lightning/plugins
+      chmod 750 .lightning .lightning/bitcoin .lightning/plugins
+
+      # Install CLN plugins
+      mv /home/cln/code/rust-teos/target/release/watchtower-client /home/cln/.lightning/plugins
+      ln -s /home/cln/code/c-lightning-REST/plugin.js /home/cln/.lightning/plugins/
   - path: /home/cln/config.txt
     owner: cln:cln
     defer: true
@@ -570,6 +576,8 @@ write_files:
       addr=statictor:127.0.0.1:9051/torport=9736
       always-use-proxy=true
 
+      plugin-dir=/home/cln/.lightning/plugins
+
       # c-lightning-REST options
       rest-port=3001
       rest-docport=4001
@@ -587,16 +595,14 @@ write_files:
       After=network-online.target
 
       [Service]
-      ExecStart=/bin/sh -c 'lightningd \
-                              --conf=/home/cln/config.txt \
-                              --plugin=/home/cln/code/c-lightning-REST/plugin.js \
-                              --plugin=/usr/local/bin/watchtower-client'
+      ExecStart=/bin/sh -c 'lightningd --conf=/home/cln/config.txt'
 
       ExecStop=/bin/sh -c 'lightning-cli stop'
 
       RuntimeDirectory=lightningd
 
       User=cln
+      Group=cln
 
       Type=exec
       PIDFile=/home/cln/.lightning/lightningd-bitcoin.pid
@@ -624,7 +630,9 @@ write_files:
       Type=exec
       WorkingDirectory=/home/rtl/code
       ExecStart=node rtl.js
+
       User=rtl
+      Group=rtl
 
       Restart=always
       RestartSec=30
@@ -723,9 +731,6 @@ write_files:
 
       # Install electrs binary
       sudo install -m 0755 -o root -g root -t /usr/local/bin /home/electrs/code/target/release/electrs
-
-      # Install Core Lightning Watchtower plugin
-      sudo install -m 0755 -o root -g root -t /usr/local/bin /home/cln/code/rust-teos/target/release/watchtower-client
 
       # Install Core Lightning binaries in /usr/local/bin
       sudo make -C /home/cln/code/lightning install
