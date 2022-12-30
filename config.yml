@@ -668,7 +668,7 @@ write_files:
         "nodes": [
           {
             "index": 1,
-            "lnNode": "autonode",
+            "lnNode": "node01",
             "lnImplementation": "CLN",
             "Authentication": {
               "macaroonPath": "/home/cln/code/c-lightning-REST/certs",
@@ -748,7 +748,7 @@ write_files:
         -days 36500
       sudo nginx -t
 
-      # Set up node firewall
+      # Set up firewall
       sudo ufw default deny incoming
       sudo ufw default allow outgoing
       sudo ufw allow 22/tcp comment 'allow SSH connections'
