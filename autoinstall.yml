@@ -22,8 +22,4 @@ autoinstall:
     install-server: true
     allow-pw: false
   user-data:
-    hostname: node01
-
-    locale: en_US.UTF-8
-
     # rest of AutoNode cloud-init template...

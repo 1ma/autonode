@@ -2,11 +2,19 @@
 
 A [cloud-init](https://cloud-init.io) template to build Bitcoin nodes automatically.
 
-## Motivation
+## Target Users
 
 > "Ain't nobody got time to sit through [RaspiBolt](https://raspibolt.org/) more than once. Once you've learned how to build a Bitcoin node with your hands the next ones should just build themselves."
 >
 > — Me
+
+AutoNode is designed to automate the initial installation of Bitcoin+Lightning nodes while still retaining the transparency that most other ready-made solutions lack.
+As such, it's not very suitable for first time node builders.
+
+If you've never built a Do It Yourself (DIY) node I encourage you to instead check out [RaspiBolt](https://raspibolt.org/) or its Intel/AMD fork, [MiniBolt](https://raspibolt.org/).
+If you prefer the video format check out 402PaymentRequired's excellent [Bitcoin & Lightning Server](https://www.youtube.com/watch?v=_Hrnls92TxQ) walkthrough that does the job in less than an hour.
+
+Once you've built at least one node you'll recognize most of the elements of the AutoNode template even if you've never used cloud-init, and you'll be able to tailor it to your own taste.
 
 ## Node Services
 
@@ -30,34 +38,27 @@ The OpenSSH server is also exposed as a Tor hidden service on port 22.
 
 ## Organization
 
-```
-/home/
-├── bitcoin/
-│   ├── bitcoin.conf
-│   ├── bitcoin-setup.sh
-│   ├── code/
-│   └── data/
-├── btcexp/
-│   └── code/
-├── electrs/
-│   ├── code/
-│   ├── data/
-│   ├── electrs.conf
-│   └── electrs-setup.sh
-└── satoshi/
-    └── superuser-setup.sh
-```
+The admin user is named `satoshi`, and is the only user in the system that has sudo permission.
+The only way to SSH into the node is through this user, and you can only do so through public key authentication (password authentication is disabled).
+Satoshi can run the `bitcoin-cli` and `lightning-cli` commands, query all journalctl logs and edit the system services with systemctl.
+
+Each service has its own systemd service configuration at `/lib/systemd/system`, and its own dedicated user to run these services in isolation.
+Source code, configuration files and data directories are located in the home directory of each of these system users. Satoshi can impersonate each
+of these users with the su command, e.g. `sudo su - electrs` if you need to update or tweak the configuration of any of these programs.
+Also, a few of the binaries that are built by hand are installed in `/usr/local/bin`.
+
+After installation all services are already up and running, though they won't be of much use until Bitcoin Core completes the Initial Block Download (IBD).
 
 ## Installation
 
-In all cases using AutoNode involves providing the YAML template the first time the machine boots.
-The specific procedure depends on where you want to use AutoNode.
+In all cases, using AutoNode involves providing the YAML template somehow to the machine the first time it boots.
+The specific procedure depends on which kind of machine you want to use AutoNode on.
 
 ### Use it on a Raspberry Pi (easy)
 
 #### Requirements
 * A Raspberry Pi 3 or 4
-* An external disk of 1TB or more
+* An external disk with 1TB of space or more
 * A microSD card
 
 
@@ -92,6 +93,10 @@ full sync, but there's enough leeway to tinker with it, even for hours.
 2. Clone the AutoNode repo and cd into it.
 3. Tweak the config.yml to your liking and the `vb.cpus` and `vb.memory` options from the Vagrantfile (might be too hefty for your machine).
 4. Run `vagrant up`. This will take some time. While you wait you can open another terminal and log in as satoshi and tail the `/var/log/cloud-init-output.log` file.
+   ```
+    $ ssh -p 2222 -o UserKnownHostsFile=/dev/null satoshi@localhost
+    $ sudo tail -f /var/log/cloud-init-output.log
+   ```
 5. After cloud-init completes `vagrant up` will end its execution with an error. This is normal, because cloud-init will reboot the virtual machine and Vagrant does not expect that.
 6. After the second boot the node is ready to log in again. All services should be running.
 7. When you're done, exit the virtual machine and run `vagrant destroy` on the same project directory.
@@ -99,10 +104,83 @@ full sync, but there's enough leeway to tinker with it, even for hours.
 ### Use it on bare metal (hard)
 
 #### Requirements
-* Any sort of physical x86_64 machine
+* Any sort of physical x86_64 machine plugged to Ethernet
+* A keyboard and monitor to begin the installation
+* A USB stick to hold the installation medium (Ubuntu Server ISO)
+* A second laptop or desktop machine connected to the same LAN as the node.
 
-`python3 -m http.server 3000`
-`autoinstall ds=nocloud-net\;s=http://192.168.1.62:3000/ ---`
+These requirements can be simulated with a VirtualBox machine running in *briged mode* so that the home router assigns it
+an IP as if it was a real device on your network.
+It is important that the node is connected to Ethernet because it needs to have LAN connectivity during the installation boot.
+On a WiFi network it won't have the credentials to connect.
+
+This walkthrough will use this approach. The host operating system will act the "second machine", and the virtual machine as the node.
+
+1. Create a new directory called whatever you want, and create three empty files in it: `user-data`, `meta-data` and `vendor-data`.
+   ```
+   $ mkdir temp
+   $ cd temp
+   $ touch user-data meta-data vendor-data
+   ```
+2. Copy your AutoNode template content into the `user-data` file.
+3. Remove the first line (`#cloud-init`) and indent the whole file by **4 extra spaces**.
+4. Copy the contents of `autoinstall.yml` at the top of the file. The AutoNode template must end up nested below the `user-data:` section **by 2 spaces**.
+
+   | ![user-data file](docs/images/autoinstall.png) |
+   |:--:|
+   | *Properly constructed user-data file. The commented lines of interactive-sections can be removed.* |
+5. Run a temporary HTTP fileserver from inside the directory. You can do that easily with Python. Here I bind the port to 3000 but the exact number doesn't matter, only that the port is free:
+   ```
+   $ cd temp
+   $ python3 -m http.server 3000
+   Serving HTTP on 0.0.0.0 port 3000 (http://0.0.0.0:3000/) ...
+   ```
+6. Check that the file server works as expected. Access `http://localhost:3000/user-data` with your browser or cURL, and you should see the contents of the `user-data` file.
+   Leave the file server running.
+7. Head for the [Ubuntu Server download page](https://ubuntu.com/download/server) and download the ISO for the latest Long Term Stable (LTS) release. Currently this is the 22.04.1 release.
+8. Check your machine's IP. In Linux you can do this with the `ifconfig` command. From now on we'll assume it is `192.168.1.10`.
+9. In VirtualBox, Select "New" and create a new virtual machine using the ISO you just download. Be sure to check the "Skip Unattended Installation" checkbox.
+
+   | ![New Virtual Machine Wizard](docs/images/bare-metal-1.png) |
+   |:--:|
+10. Before starting the virtual machine for the first time, go to its Settings > Network and change NAT to Bridged Adapter.
+
+   | ![Virtual Machine Network Settings](docs/images/bare-metal-2.png) |
+   |:--:|
+11. Click Run, and as soon as the GRUB screen appears, press the letter `e`. This will land you into GRUB's boot editor:
+
+   | ![GRUB Screen](docs/images/boot1.jpg) |
+   |:--:|
+   | ![GRUB Edit Menu](docs/images/edit1.jpg) |
+12. Move the cursor behind the three dashes and write:
+   ```
+   autoinstall ds=nocloud-net\;s=http://192.168.1.10:3000/
+   ```
+   You must write it exactly the same as shown. Mind the backward slash before the semicolon, and the last slash after the port number. *Nothing is optional*.
+
+   This step will be tricky if you (like me) aren't using a standard US keyboard, because at this stage the computer hasn't loaded the correct keyboard layout.
+   You can help yourself with an image of the US keyboard layout. Once you are done, press `F10` to resume the boot.
+
+   | ![Edited Boot Entry](docs/images/edit2.jpg) |
+   |:--:|
+   | *A properly edited boot entry* |
+   | ![US Keyboard Layout](docs/images/us-keyboard-layout.png) |
+   | *The standard US keyboard layout* |
+13. After you press `F10` the boot will start and the Ubuntu Server's installation wizard will eventually appear on screen.
+    If you did everything correctly you'll see in the file server logs that 'someone' accessed the three files you prepared during the first part of the setup.
+    Another way to tell that everything went OK is that the first screen of the Ubuntu wizard will be the Keyboard Layout selection instead of the system Language (language is handled by AutoNode).
+
+   | ![Success](docs/images/success.png) |
+   |:--:|
+   | *The boot sequence has read the cloud-init template, success.* |
+
+14. Proceed with the Ubuntu Server installation. It will have fewer screens than usual because some of them are handled by AutoNode. Once the installation completes and the node reboots for the first time
+    AutoNode will kick in and begin installing the Bitcoin software.
+    If you have your SSH keys at hand you'll be able to SSH into the node as `satoshi` in about a minute after the boot and follow the cloud-init logs until it finishes and reboots the machine again:
+    ```
+    $ ssh satoshi@192.168.1.15
+    $ sudo tail -f /var/log/cloud-init-output.log
+    ```
 
 ## Post Installation
 
@@ -286,7 +364,7 @@ satoshi@node01:~$ journalctl -f -u electrs.service
 
 ### Supported OS
 
-I only test and support AutoNode on the latest Ubuntu Server LTS version (currently 22.04).
+I only test and support AutoNode on the latest Ubuntu Server LTS version (currently 22.04.1).
 However cloud-init is supposed to work with a wide range of OSes and virtual cloud providers.
 
 I'm interested in PRs that provide support for other OSes as long as they don't break Ubuntu Server.
