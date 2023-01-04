@@ -4,7 +4,9 @@
     "license": "MIT",
     "require": {
         "jelly/jelly": "dev-master",
-        "twig/twig": "^3.5"
+        "nyholm/psr7": "^1.5",
+        "twig/twig": "^3.5",
+        "uma/dic": "^3.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5"

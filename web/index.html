@@ -26,7 +26,7 @@
 </header>
 <main>
     <h1>AutoNode Template Generator</h1>
-    <form>
+    <form method="post" action="/generate">
         <fieldset>
             <legend>General Settings</legend>
             <p>
@@ -48,7 +48,7 @@
                 </label>
             </p>
             <fieldset>
-                <legend>Authentication</legend>
+                <legend>SSH</legend>
                 <p>
                     <label>
                         <select name="auth-type-1">
@@ -57,16 +57,6 @@
                             <option value="launchpad">Launchpad User</option>
                         </select>
                         <input name="thing-1" type="text" required>
-                    </label>
-                </p>
-                <p>
-                    <label>
-                        <select name="auth-type-2">
-                            <option value="ssh-key">SSH Public Key</option>
-                            <option value="github">GitHub User</option>
-                            <option value="launchpad">Launchpad User</option>
-                        </select>
-                        <input name="thing-2" type="text" required>
                     </label>
                 </p>
                 <button>Add Another</button>
@@ -187,7 +177,7 @@
                 </label>
             </p>
         </fieldset>
-        <button>Generate Template</button>
+        <input type="submit" value="Generate Template">
     </form>
 </main>
 </body>
