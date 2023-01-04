@@ -3,15 +3,192 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Home Page</title>
-
-    <script src="/assets/js/htmx.min.js" ></script>
+    <title>AutoNode</title>
+    <link rel="stylesheet" href="/assets/css/missing-1.0.5.min.css">
+    <script src="/assets/js/htmx-1.8.4.min.js" ></script>
 </head>
 <body>
-<section class="section hero is-primary is-fullheight">
-    <div class="container">
-        <h1 class="title">Index Page</h1>
-    </div>
-</section>
+<header class="navbar">
+    <nav class="contents">
+        <ul role="list">
+            <li>
+                <a href="/">Template Generator</a>
+            </li>
+            <li>
+                <a href="/docs">Documentation</a>
+            </li>
+            <li>
+                <a href="/about">About</a>
+            </li>
+
+        </ul>
+    </nav>
+</header>
+<main>
+    <h1>AutoNode Template Generator</h1>
+    <form>
+        <fieldset>
+            <legend>General Settings</legend>
+            <p>
+                <label>
+                    Bare Metal installation
+                    <input name="bare-metal" type="checkbox">
+                </label>
+            </p>
+            <p>
+                <label>
+                    Username
+                    <input name="admin-username" type="text" value="satoshi" required>
+                </label>
+            </p>
+            <p>
+                <label>
+                    Hostname
+                    <input name="hostname" type="text" value="autonode" required>
+                </label>
+            </p>
+            <fieldset>
+                <legend>Authentication</legend>
+                <p>
+                    <label>
+                        <select name="auth-type-1">
+                            <option value="ssh-key">SSH Public Key</option>
+                            <option value="github">GitHub User</option>
+                            <option value="launchpad">Launchpad User</option>
+                        </select>
+                        <input name="thing-1" type="text" required>
+                    </label>
+                </p>
+                <p>
+                    <label>
+                        <select name="auth-type-2">
+                            <option value="ssh-key">SSH Public Key</option>
+                            <option value="github">GitHub User</option>
+                            <option value="launchpad">Launchpad User</option>
+                        </select>
+                        <input name="thing-2" type="text" required>
+                    </label>
+                </p>
+                <button>Add Another</button>
+            </fieldset>
+            <p>
+                <label>
+                    Set up Tor services
+                    <input name="with-tor-services" type="checkbox" checked>
+                </label>
+            </p>
+            <p>
+                <label>
+                    Set up NGiNX TLS Reverse Proxy
+                    <input name="with-nginx" type="checkbox" checked>
+                </label>
+            </p>
+            <fieldset>
+                <legend>Subject Alt Names</legend>
+                <button>Add SAN</button>
+            </fieldset>
+        </fieldset>
+        <fieldset>
+            <legend>Bitcoin Core</legend>
+            <p>
+                <label>
+                    Version
+                    <select name="bitcoin-core-version">
+                        <option value="v23-1-0">v23.1.0</option>
+                        <option value="none">None</option>
+                    </select>
+                </label>
+            </p>
+            <p>
+                <label>
+                    DBCache Size (MiB)
+                    <input name="bitcoin-core-dbcache" type="number" value="1024" required>
+                </label>
+            </p>
+        </fieldset>
+        <fieldset>
+            <legend>Rust Electrum Server</legend>
+            <p>
+                <label>
+                    Version
+                    <select name="electrs-version">
+                        <option value="v0-9-10">v0.9.10</option>
+                        <option value="none">None</option>
+                    </select>
+                </label>
+            </p>
+        </fieldset>
+        <fieldset>
+            <legend>BTC RPC Explorer</legend>
+            <p>
+                <label>
+                    Version
+                    <select name="btcexp-version">
+                        <option value="v3-3-0">v3.3.0</option>
+                        <option value="none">None</option>
+                    </select>
+                </label>
+            </p>
+            <p>
+                <label>
+                    Currency
+                    <select name="btcexp-currency">
+                        <option value="eur">EUR</option>
+                        <option value="usd">USD</option>
+                    </select>
+                </label>
+            </p>
+            <p>
+                <label>
+                    Theme
+                    <select name="btcexp-theme">
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                    </select>
+                </label>
+            </p>
+        </fieldset>
+        <fieldset>
+            <legend>Core Lightning</legend>
+            <p>
+                <label>
+                    Version
+                    <select name="cln-version">
+                        <option value="none">None</option>
+                        <option value="v22-11-0">v22.11.0</option>
+                    </select>
+                </label>
+            </p>
+        </fieldset>
+        <fieldset>
+            <legend>Ride The Lightning</legend>
+            <p>
+                <label>
+                    Version
+                    <select name="rtl-version">
+                        <option value="none">None</option>
+                        <option value="v0-13-4">v0.13.4</option>
+                    </select>
+                </label>
+            </p>
+        </fieldset>
+        <fieldset>
+            <legend>Miscellaneous Software</legend>
+            <p>
+                <label>
+                    Sparrow Server
+                    <input name="install-sparrow" type="checkbox" checked>
+                </label>
+            </p>
+            <p>
+                <label>
+                    WireGuard
+                    <input name="install-wireguard" type="checkbox">
+                </label>
+            </p>
+        </fieldset>
+        <button>Generate Template</button>
+    </form>
+</main>
 </body>
 </html>
