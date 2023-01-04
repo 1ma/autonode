@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../vendor/autoload.php';
+use AutoNode\DI;
+use UMA\DIC\Container;
 
-// front controller
+define('__ROOT__', dirname(__DIR__));
+
+require_once __ROOT__ . '/vendor/autoload.php';
+
+$cnt = new Container();
+$cnt->register(new DI\Handlers());
+$cnt->register(new DI\AutoNode());
+
+$cnt->get(DI\AutoNode::class)->run();
