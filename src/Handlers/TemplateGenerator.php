@@ -16,7 +16,7 @@ final class TemplateGenerator implements RequestHandlerInterface
     {
         return new Response(
             200,
-            ['Content-Type' => 'application/yaml', 'Content-Disposition' => 'attachment; filename="autonode.yml"'],
+            ['Content-Type' => 'application/yaml', 'Content-Disposition' => 'attachment; filename="install.yml"'],
             file_get_contents(__ROOT__ . '/config.yml')
         );
     }
