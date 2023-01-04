@@ -5,6 +5,7 @@
     "require": {
         "jelly/jelly": "dev-master",
         "nyholm/psr7": "^1.5",
+        "symfony/yaml": "^6.2",
         "twig/twig": "^3.5",
         "uma/dic": "^3.0"
     },
