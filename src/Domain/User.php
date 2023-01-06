@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AutoNode\Domain;
 
 use function array_keys;
+use function ksort;
 
 final class User
 {
@@ -22,11 +23,15 @@ final class User
         foreach ($groups as $group) {
             $this->groups[$group] = true;
         }
+
+        ksort($this->groups);
     }
 
     public function addGroup(string $group): void
     {
         $this->groups[$group] = true;
+
+        ksort($this->groups);
     }
 
     public function getName(): string
@@ -34,21 +39,23 @@ final class User
         return $this->name;
     }
 
-    public function getGecos(): string
+    public function toArray(): array
     {
-        return $this->gecos;
-    }
+        $user = [
+            'name' => $this->name,
+            'gecos' => $this->gecos,
+        ];
 
-    public function isSudo(): bool
-    {
-        return $this->sudo;
-    }
+        if (!empty($this->groups)) {
+            $user['groups'] = implode(', ', array_keys($this->groups));
+        }
 
-    /**
-     * @return string[]
-     */
-    public function getGroups(): array
-    {
-        return array_keys($this->groups);
+        if ($this->sudo) {
+            $user['sudo'] = 'ALL=(ALL) NOPASSWD:ALL';
+        }
+
+        $user['shell'] = '/bin/bash';
+
+        return $user;
     }
 }
