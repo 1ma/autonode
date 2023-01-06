@@ -4,37 +4,46 @@ declare(strict_types=1);
 
 namespace AutoNode\Domain;
 
-use function implode;
-
 final class Template
 {
     private string $hostname;
     private string $locale;
+
     private User $adminUser;
 
     /** @var User[] */
     private array $systemUsers;
 
+    /** @var File[] */
+    private array $files;
+
     /** @var string[] */
     private array $packages;
 
-    public function __construct(
-        string $hostname,
-        string $locale,
-        User $defaultUser
-    )
+    public function __construct(string $hostname, string $locale, string $defaultUser)
     {
         $this->hostname = $hostname;
         $this->locale = $locale;
-        $this->adminUser = $defaultUser;
+        $this->adminUser = new User($defaultUser, 'Admin user', true, ['adm', 'cdrom', 'dip', 'lxd', 'plugdev', 'sudo']);
         $this->systemUsers = [];
+        $this->files = [
+            new File('/etc/tor/torrc', 'root:root', '0644', true, <<<TXT
+ControlPort 9051
+CookieAuthentication 1
+CookieAuthFileGroupReadable 1
+
+HiddenServiceDir /var/lib/tor/sshd/
+HiddenServicePort 22 127.0.0.1:22
+
+TXT
+            ),
+        ];
         $this->packages = [
             'apt-transport-https',
             'fail2ban',
             'net-tools',
             'nginx',
             'tree',
-            'ufw',
         ];
     }
 
@@ -49,13 +58,7 @@ final class Template
                 ]
             ],
             'users' => [
-                [
-                    'name' => $this->adminUser->getName(),
-                    'gecos' => $this->adminUser->getGecos(),
-                    'groups' => implode(', ', $this->adminUser->getGroups()),
-                    'shell' => '/bin/bash',
-                    'sudo' => 'ALL=(ALL) NOPASSWD:ALL',
-                ]
+                $this->adminUser->toArray()
             ],
             'apt' => [
                 'sources' => [
@@ -68,6 +71,12 @@ final class Template
             'package_update' => true,
             'package_upgrade' => true,
             'packages' => $this->packages,
+            'power_state' => [
+                'mode' => 'reboot',
+            ],
+            'write_files' => [
+                $this->files[0]->toArray()
+            ],
         ];
     }
 }
