@@ -14,7 +14,7 @@ final class User
     private bool $sudo;
     private array $groups;
 
-    public function __construct(string $name, string $gecos, bool $sudo, array $groups)
+    public function __construct(string $name, string $gecos, bool $sudo, array $groups = [])
     {
         $this->name = $name;
         $this->gecos = $gecos;
@@ -44,6 +44,7 @@ final class User
         $user = [
             'name' => $this->name,
             'gecos' => $this->gecos,
+            'shell' => '/bin/bash',
         ];
 
         if (!empty($this->groups)) {
@@ -53,8 +54,6 @@ final class User
         if ($this->sudo) {
             $user['sudo'] = 'ALL=(ALL) NOPASSWD:ALL';
         }
-
-        $user['shell'] = '/bin/bash';
 
         return $user;
     }

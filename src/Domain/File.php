@@ -6,24 +6,34 @@ namespace AutoNode\Domain;
 
 final class File
 {
-    private string $path;
-    private string $owner;
-    private string $permissions;
+    private readonly string $path;
+    private readonly string $owner;
+    private readonly string $permissions;
+    private readonly bool $defer;
+    private readonly bool $append;
     private string $content;
-    private bool $defer;
 
-    public function __construct(string $path, string $owner, string $permissions, bool $defer, string $content)
+    public function __construct(string $path, string $owner, string $permissions, bool $defer, bool $append, string $content)
     {
         $this->path = $path;
         $this->owner = $owner;
         $this->permissions = $permissions;
-        $this->content = $content;
         $this->defer = $defer;
+        $this->append = $append;
+        $this->content = $content;
+
+        if ($this->content[-1] !== "\n") {
+            $this->content .= "\n";
+        }
     }
 
     public function appendContent(string $moreContent): void
     {
-        $this->content .= $moreContent;
+        $this->content .= "\n" . $moreContent;
+
+        if ($this->content[-1] !== "\n") {
+            $this->content .= "\n";
+        }
     }
 
     public function toArray(): array
@@ -31,7 +41,8 @@ final class File
         return [
             'path' => $this->path,
             'owner' => $this->owner,
-            'defer' => $this->defer ? 'true' : 'false',
+            'defer' => $this->defer,
+            'append' => $this->append,
             'permissions' => $this->permissions,
             'content' => $this->content
         ];

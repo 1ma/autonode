@@ -10,6 +10,7 @@
         "uma/dic": "^3.0"
     },
     "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.13",
         "phpunit/phpunit": "^9.5"
     },
     "autoload": {
@@ -18,7 +19,8 @@
         }
     },
     "scripts": {
-        "serve": "@php -S localhost:8080 -t web cli-app.php"
+        "serve": "@php -S localhost:8080 -t web cli-app.php",
+        "lint": "@php vendor/bin/php-cs-fixer fix ./src"
     },
     "config": {
         "process-timeout": 0,
