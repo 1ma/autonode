@@ -16,10 +16,10 @@ interface Feature
     public function getUsers(): array;
 
     /** @return TorHiddenService[] */
-    public function extraTorHiddenServices(): array;
+    public function torHiddenServices(): array;
 
     /** @return string[] */
-    public function extraAdminGroups(): array;
+    public function adminGroups(): array;
 
     /** @return string[] */
     public function getPackages(): array;
