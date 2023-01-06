@@ -18,6 +18,8 @@ final class GenerateTemplate implements RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $adminUser = new User('satoshi', 'Admin user', true);
+        $adminUser->addAuthorizedKey('ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKwg+bJZ7RVMbwslBzMlN2+Hfe13fCD8u2IxAZZoHeQ5 root@d2db98313a74');
+        $adminUser->addImportId('gh', '1ma');
 
         $template = new CloudInitTemplate('autonode', 'en_US.UTF-8', $adminUser);
         $template->add(new Basics());

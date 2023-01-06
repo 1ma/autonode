@@ -50,7 +50,7 @@ final class Basics implements Feature
         return [];
     }
 
-    public function extraTorHiddenServices(): array
+    public function torHiddenServices(): array
     {
         return [
             new TorHiddenService('ssh', 22, 22)
@@ -75,7 +75,7 @@ final class Basics implements Feature
     /**
      * @inheritDoc
      */
-    public function extraAdminGroups(): array
+    public function adminGroups(): array
     {
         return [
             'adm',

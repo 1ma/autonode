@@ -59,11 +59,11 @@ TXT
 
         // TODO sort some of these arrays
 
-        foreach ($feature->extraAdminGroups() as $extraAdminGroup) {
-            $this->adminUser->addGroup($extraAdminGroup);
+        foreach ($feature->adminGroups() as $adminGroup) {
+            $this->adminUser->addGroup($adminGroup);
         }
 
-        foreach ($feature->extraTorHiddenServices() as $torHiddenService) {
+        foreach ($feature->torHiddenServices() as $torHiddenService) {
             $this->torConfig->appendContent((string) $torHiddenService);
         }
     }
