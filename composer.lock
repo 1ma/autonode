@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "927580f1a2a101cf47717b2a922dbdc9",
+    "content-hash": "e3d3aa84998192ec49cd4f54ddf64d7a",
     "packages": [
         {
             "name": "jelly/jelly",
