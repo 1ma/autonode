@@ -1,30 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AutoNode</title>
-    <link rel="stylesheet" href="/assets/css/missing-1.0.5.min.css">
-    <script src="/assets/js/htmx-1.8.4.min.js" ></script>
-</head>
-<body>
-<header class="navbar">
-    <nav class="contents">
-        <ul role="list">
-            <li>
-                <a href="/">Template Generator</a>
-            </li>
-            <li>
-                <a href="/docs">Documentation</a>
-            </li>
-            <li>
-                <a href="/about">About</a>
-            </li>
+{% extends 'layout.html.twig' %}
 
-        </ul>
-    </nav>
-</header>
-<main>
+{% block content %}
     <h1>AutoNode Template Generator</h1>
     <form method="post" action="/generate">
         <fieldset>
@@ -179,6 +155,4 @@
         </fieldset>
         <input type="submit" value="Generate Template">
     </form>
-</main>
-</body>
-</html>
+{% endblock %}

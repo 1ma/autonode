@@ -22,6 +22,7 @@ final class AutoNode implements ServiceProvider
 
             $app = new Jelly($c);
 
+            $app->GET('/', Handlers\LandingPage::class);
             $app->POST('/generate', Handlers\GenerateTemplate::class);
 
             return $app;
