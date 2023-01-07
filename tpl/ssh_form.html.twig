@@ -1,0 +1,38 @@
+<fieldset>
+    <legend>SSH</legend>
+    {% for item in ssh|default([{'type': null, 'data': null}]) %}
+    <p>
+        <label>
+            <select name="ssh-type-{{ loop.index }}">
+                {% if item.type is same as 'pk' %}
+                <option value="pk" selected>SSH Public Key</option>
+                <option value="gh">GitHub User</option>
+                <option value="lp">Launchpad User</option>
+                {% elseif item.type is same as 'gh' %}
+                <option value="pk">SSH Public Key</option>
+                <option value="gh" selected>GitHub User</option>
+                <option value="lp">Launchpad User</option>
+                {% elseif item.type is same as 'lp' %}
+                <option value="pk">SSH Public Key</option>
+                <option value="gh">GitHub User</option>
+                <option value="lp" selected>Launchpad User</option>
+                {% else %}
+                <option value="pk">SSH Public Key</option>
+                <option value="gh">GitHub User</option>
+                <option value="lp">Launchpad User</option>
+                {% endif %}
+            </select>
+            {% if item.data|default(null) != null %}
+            <input name="ssh-data-{{ loop.index }}" type="text" value="{{ item.data }}" required>
+            {% else %}
+            <input name="ssh-data-{{ loop.index }}" type="text" required>
+            {% endif %}
+        </label>
+    </p>
+    {% endfor %}
+    <button hx-post="/generate/ssh"
+            hx-swap="outerHTML"
+            hx-target="closest fieldset">
+        Add Another
+    </button>
+</fieldset>

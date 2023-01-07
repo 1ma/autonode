@@ -23,20 +23,7 @@
                     <input name="hostname" type="text" value="autonode" required>
                 </label>
             </p>
-            <fieldset>
-                <legend>SSH</legend>
-                <p>
-                    <label>
-                        <select name="auth-type-1">
-                            <option value="ssh-key">SSH Public Key</option>
-                            <option value="github">GitHub User</option>
-                            <option value="launchpad">Launchpad User</option>
-                        </select>
-                        <input name="thing-1" type="text" required>
-                    </label>
-                </p>
-                <button>Add Another</button>
-            </fieldset>
+            {% include 'ssh_form.html.twig' %}
             <p>
                 <label>
                     Set up Tor services

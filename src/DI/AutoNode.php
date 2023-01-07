@@ -24,6 +24,7 @@ final class AutoNode implements ServiceProvider
 
             $app->GET('/', Handlers\LandingPage::class);
             $app->POST('/generate', Handlers\GenerateTemplate::class);
+            $app->POST('/generate/ssh', Handlers\GenerateTemplate\ExtraAuthenticationMethod::class);
 
             return $app;
         });
