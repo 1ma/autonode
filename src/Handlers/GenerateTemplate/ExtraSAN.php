@@ -12,7 +12,7 @@ use Twig\Environment;
 use function array_filter;
 use function preg_match;
 
-final class ExtraAuthenticationMethod implements RequestHandlerInterface
+final class ExtraSAN implements RequestHandlerInterface
 {
     private Environment $twig;
 
@@ -27,27 +27,27 @@ final class ExtraAuthenticationMethod implements RequestHandlerInterface
 
         $filteredForm = array_filter(
             $form,
-            fn(string $value, string $key): bool => (preg_match('/^ssh\-data\-\d+$/', $key) + preg_match('/^ssh\-type\-\d+$/', $key)) && !empty($value),
+            fn(string $value, string $key): bool => (preg_match('/^san\-data\-\d+$/', $key) + preg_match('/^san\-type\-\d+$/', $key)) && !empty($value),
             ARRAY_FILTER_USE_BOTH
         );
 
-        $ssh = [];
+        $san = [];
         foreach ($filteredForm as $name => $value) {
-                if (preg_match('/^ssh\-type\-(\d+)$/', $name, $match)) {
-                    $ssh[(int) $match[1]]['type'] = $value;
+                if (preg_match('/^san\-type\-(\d+)$/', $name, $match)) {
+                    $san[(int) $match[1]]['type'] = $value;
                 }
 
-                if (preg_match('/^ssh\-data\-(\d+)$/', $name, $match)) {
-                    $ssh[(int) $match[1]]['data'] = $value;
+                if (preg_match('/^san\-data\-(\d+)$/', $name, $match)) {
+                    $san[(int) $match[1]]['data'] = $value;
                 }
         }
 
-        $ssh[] = ['type' => null, 'data' => null];
+        $san[] = ['type' => null, 'data' => null];
 
         return new Response(
             200,
             ['Content-Type' => 'text/html; charset=utf-8'],
-            $this->twig->render('ssh_form.html.twig', ['ssh' => $ssh])
+            $this->twig->render('san_form.html.twig', ['san' => $san])
         );
     }
 }

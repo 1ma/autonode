@@ -37,8 +37,14 @@ final class Handlers implements ServiceProvider
             return new GenerateTemplate();
         });
 
-        $c->set(ExtraAuthenticationMethod::class, static function (Container $c): RequestHandlerInterface {
-            return new ExtraAuthenticationMethod(
+        $c->set(GenerateTemplate\ExtraSAN::class, static function (Container $c): RequestHandlerInterface {
+            return new GenerateTemplate\ExtraSAN(
+                $c->get(Environment::class)
+            );
+        });
+
+        $c->set(GenerateTemplate\ExtraAuthenticationMethod::class, static function (Container $c): RequestHandlerInterface {
+            return new GenerateTemplate\ExtraAuthenticationMethod(
                 $c->get(Environment::class)
             );
         });
