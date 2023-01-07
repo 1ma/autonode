@@ -36,10 +36,7 @@
                     <input name="with-nginx" type="checkbox" checked>
                 </label>
             </p>
-            <fieldset>
-                <legend>Subject Alt Names</legend>
-                <button>Add SAN</button>
-            </fieldset>
+            {% include 'san_form.html.twig' %}
         </fieldset>
         <fieldset>
             <legend>Bitcoin Core</legend>

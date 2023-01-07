@@ -3,7 +3,7 @@
     {% for item in ssh|default([{'type': null, 'data': null}]) %}
     <p>
         <label>
-            <select name="ssh-type-{{ loop.index }}">
+            <select name="ssh-type-{{ loop.index0 }}">
                 {% if item.type is same as 'pk' %}
                 <option value="pk" selected>SSH Public Key</option>
                 <option value="gh">GitHub User</option>
@@ -23,9 +23,9 @@
                 {% endif %}
             </select>
             {% if item.data|default(null) != null %}
-            <input name="ssh-data-{{ loop.index }}" type="text" value="{{ item.data }}" required>
+            <input name="ssh-data-{{ loop.index0 }}" type="text" value="{{ item.data }}" required>
             {% else %}
-            <input name="ssh-data-{{ loop.index }}" type="text" required>
+            <input name="ssh-data-{{ loop.index0 }}" type="text" required>
             {% endif %}
         </label>
     </p>
