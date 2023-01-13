@@ -14,13 +14,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 2
       - name: Install dependencies for deployment
         run: |
-          apk add bash git openssh-client rsync
+          apk add bash openssh-client rsync
       - name: Run Deployer process
         run: |
           eval $(ssh-agent -s)
           echo "${{secrets.SSH_PRIVATE_KEY}}" | ssh-add -
-          dep --file=deploy.php autonode:deploy -vv
+          dep autonode:deploy -vv

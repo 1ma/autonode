@@ -8,27 +8,25 @@ set('application', 'autonode');
 set('repository', 'git@github.com:1ma/autonode');
 set('keep_releases', 5);
 
-define('APP_ROOT', __DIR__);
-
 host('autonode.1mahq.com')
     ->setRemoteUser('deployer')
     ->setDeployPath('~/{{application}}')
-    ->setPort(2009)
     ->setSshArguments([
         '-o StrictHostKeyChecking=accept-new',
+        '-p 2009'
     ]);
 
 task('autonode:build', static function () {
-    runLocally('composer install --no-dev --classmap-authoritative', ['cwd' => APP_ROOT]);
+    runLocally('composer install --no-dev --classmap-authoritative');
 });
 
 task('autonode:upload', static function () {
-    upload(APP_ROOT . '/composer.json', '{{release_path}}');
-    upload(APP_ROOT . '/composer.lock', '{{release_path}}');
-    upload(APP_ROOT . '/src', '{{release_path}}');
-    upload(APP_ROOT . '/tpl', '{{release_path}}');
-    upload(APP_ROOT . '/vendor', '{{release_path}}');
-    upload(APP_ROOT . '/web', '{{release_path}}');
+    upload(__DIR__ . '/composer.json', '{{release_path}}');
+    upload(__DIR__ . '/composer.lock', '{{release_path}}');
+    upload(__DIR__ . '/src', '{{release_path}}');
+    upload(__DIR__ . '/tpl', '{{release_path}}');
+    upload(__DIR__ . '/vendor', '{{release_path}}');
+    upload(__DIR__ . '/web', '{{release_path}}');
 });
 
 task('autonode:check-reqs', static function () {
