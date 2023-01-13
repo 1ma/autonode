@@ -1,0 +1,24 @@
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    name: Deploy AutoNode
+    runs-on: ubuntu-latest
+    container: 1maa/php-dev:8.2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      - name: Set up SSH access to the VPS
+        run: |
+          apk add bash git openssh-client rsync
+          eval $(ssh-agent -s)
+          echo "${{secrets.SSH_PRIVATE_KEY}}" | ssh-add -
+          mkdir -p ~/.ssh
+          ssh-keyscan autonode.1mahq.com >> ~/.ssh/known_hosts
+      - name: Run Deployer process
+        run: dep --file=deploy.php autonode:deploy -vv
