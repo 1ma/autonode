@@ -1,5 +1,7 @@
 # AutoNode
 
+[![Continuous Deployment](https://github.com/1ma/autonode/actions/workflows/cd.yml/badge.svg)](https://github.com/1ma/autonode/actions/workflows/cd.yml)
+
 A [cloud-init](https://cloud-init.io) template to build Bitcoin nodes automatically.
 
 ## Target Users
