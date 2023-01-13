@@ -12,7 +12,10 @@ define('APP_ROOT', __DIR__);
 
 host('autonode.1mahq.com')
     ->setRemoteUser('deployer')
-    ->setDeployPath('~/{{application}}');
+    ->setDeployPath('~/{{application}}')
+    ->setSshArguments([
+        '-o StrictHostKeyChecking=accept-new',
+    ]);
 
 task('autonode:build', static function () {
     runLocally('composer install --no-dev --classmap-authoritative', ['cwd' => APP_ROOT]);
