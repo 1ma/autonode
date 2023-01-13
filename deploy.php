@@ -13,6 +13,7 @@ define('APP_ROOT', __DIR__);
 host('autonode.1mahq.com')
     ->setRemoteUser('deployer')
     ->setDeployPath('~/{{application}}')
+    ->setPort(2009)
     ->setSshArguments([
         '-o StrictHostKeyChecking=accept-new',
     ]);
