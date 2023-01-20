@@ -12,7 +12,8 @@
     "require-dev": {
         "deployer/deployer": "^7.1",
         "friendsofphp/php-cs-fixer": "^3.13",
-        "phpunit/phpunit": "^9.5"
+        "phpunit/phpunit": "^9.5",
+        "roave/security-advisories": "dev-latest"
     },
     "autoload": {
         "psr-4": {
