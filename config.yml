@@ -197,30 +197,24 @@ write_files:
       startupnotify=chmod g+r /home/bitcoin/data/.cookie
 
       assumevalid=0
-      whitelist=download@127.0.0.1
 
       # Bitcoin daemon
       server=1
       txindex=1
 
       # Network
-      onlynet=i2p
-      onlynet=onion
       listen=1
-      listenonion=1
       proxy=127.0.0.1:9050
       bind=127.0.0.1
       i2psam=127.0.0.1:7656
 
-      maxconnections=50
-      maxuploadtarget=16384
-
       # Initial block download optimizations
       # Comment them out and restart after full sync
       dbcache=12288
+      blocksonly=1
 
       # Barcelona Bitcoin Only community node
-      addnode=jr77cwjarx5rba4x3hahafvjpkxdfuj7iiyctro47clguea7uzqhblad.onion:8333
+      addnode=ots6ud7ovx6furs4sxlm7aze5q44qtoeapwcukelcxc3i2r5tkxgdlqd.onion:8333
   - path: /lib/systemd/system/bitcoin.service
     owner: root:root
     permissions: '0644'
@@ -764,7 +758,7 @@ write_files:
       sudo systemctl enable bitcoin.service
       sudo systemctl enable btcexp.service
       sudo systemctl enable electrs.service
-      sudo systemctl enable cln.service
+      # sudo systemctl enable cln.service
       sudo systemctl enable rtl.service
       sudo systemctl enable i2pd.service
 
