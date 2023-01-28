@@ -31,10 +31,10 @@ final class Input
         $input->admin = $form['admin-username'];
         $input->hostname = $form['hostname'];
         $input->locale = $form['locale'];
-        $input->withTor = $form['with-tor-services'] === 'on';
-        $input->withNginx = $form['with-nginx'] === 'on';
-        $input->withSparrow = $form['with-sparrow'] === 'on';
-        $input->withWireGuard = $form['with-wireguard'] === 'on';
+        $input->withTor = ($form['with-tor-services'] ?? '') === 'on';
+        $input->withNginx = ($form['with-nginx'] ?? '') === 'on';
+        $input->withSparrow = ($form['with-sparrow'] ?? '') === 'on';
+        $input->withWireGuard = ($form['with-wireguard'] ?? '') === 'on';
 
         $input->bitcoinCore = [];
         if ($form['bitcoin-core-version'] !== 'none') {
