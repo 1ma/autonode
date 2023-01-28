@@ -8,6 +8,7 @@ final class Input
 {
     public string $admin;
     public string $hostname;
+    public string $locale;
     public array $sshKeys;
     public bool $withTor;
     public bool $withNginx;
@@ -29,6 +30,7 @@ final class Input
 
         $input->admin = $form['admin-username'];
         $input->hostname = $form['hostname'];
+        $input->locale = $form['locale'];
         $input->withTor = $form['with-tor-services'] === 'on';
         $input->withNginx = $form['with-nginx'] === 'on';
         $input->withSparrow = $form['with-sparrow'] === 'on';
