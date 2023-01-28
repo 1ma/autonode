@@ -10,9 +10,9 @@
         "uma/dic": "^3.0"
     },
     "require-dev": {
-        "deployer/deployer": "^7.1",
-        "friendsofphp/php-cs-fixer": "^3.13",
-        "phpunit/phpunit": "^9.5",
+        "deployer/deployer": "^7.2",
+        "friendsofphp/php-cs-fixer": "^3.15",
+        "phpunit/phpunit": "^10.0",
         "roave/security-advisories": "dev-latest"
     },
     "autoload": {
