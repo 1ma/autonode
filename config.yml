@@ -44,14 +44,14 @@ users:
 apt:
   sources:
     nginx:
-      source: "deb https://nginx.org/packages/mainline/ubuntu jammy nginx"
-      keyid: 573B FD6B 3D8F BC64 1079 A6AB ABF5 BD82 7BD9 BF62
+      source: "deb http://nginx.org/packages/mainline/debian bullseye nginx"
+      keyid: ABF5 BD82 7BD9 BF62
     nodesource:
-      source: "deb https://deb.nodesource.com/node_18.x jammy main"
-      keyid: 9FD3 B784 BC1C 6FC3 1A8A 0A1C 1655 A0AB 6857 6280
+      source: "deb https://deb.nodesource.com/node_18.x bullseye main"
+      keyid: 1655 A0AB 6857 6280
     tor:
-      source: "deb https://deb.torproject.org/torproject.org jammy main"
-      keyid: A3C4 F0F9 79CA A22C DBA8 F512 EE8C BC9E 886D DD89
+      source: "deb https://deb.torproject.org/torproject.org bullseye main"
+      keyid: BC9E 886D DD89
     i2pd:
       source: "ppa:purplei2p/i2pd"
 
@@ -91,7 +91,7 @@ packages:
   - ufw
   - wireguard
   - zlib1g-dev
-
+  
 runcmd:
   - su -c "bash -x /home/bitcoin/bitcoin-setup.sh" - bitcoin
   - su -c "bash -x /home/electrs/electrs-setup.sh" - electrs
