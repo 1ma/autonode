@@ -538,7 +538,7 @@ write_files:
 
       # Install CLN plugins
       mv /home/cln/code/rust-teos/target/release/watchtower-client /home/cln/.lightning/plugins
-      ln -s /home/cln/code/c-lightning-REST/plugin.js /home/cln/.lightning/plugins/
+      ln -s /home/cln/code/c-lightning-REST/clrest.js /home/cln/.lightning/plugins/
   - path: /home/cln/config.txt
     owner: cln:cln
     defer: true
@@ -580,7 +580,7 @@ write_files:
       rest-port=3001
       rest-docport=4001
       rest-protocol=http
-      #rest-bind=127.0.0.1 # pending merge https://github.com/Ride-The-Lightning/c-lightning-REST/pull/151
+      rest-bind=127.0.0.1
   - path: /lib/systemd/system/cln.service
     owner: root:root
     permissions: '0644'
