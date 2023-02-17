@@ -495,7 +495,7 @@ write_files:
       pip3 install mako poetry
       source .profile
 
-      export CLN_REST_VERSION=v0.9.0
+      export CLN_REST_VERSION=v0.10.0
 
       wget -q -O- https://keybase.io/suheb/pgp_keys.asc | gpg --import -
       wget -O- https://blog.1mahq.com/keys/cln_developers.pem | gpg --import -
@@ -764,10 +764,10 @@ write_files:
 
       # Install Sparrow Server
       wget -q -O- https://keybase.io/craigraw/pgp_keys.asc | gpg --import
-      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-server_1.7.1-1_amd64.deb
-      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-1.7.1-manifest.txt
-      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.1/sparrow-1.7.1-manifest.txt.asc
-      gpg --verify sparrow-1.7.1-manifest.txt.asc sparrow-1.7.1-manifest.txt
-      sha256sum --ignore-missing --check sparrow-1.7.1-manifest.txt
-      sudo dpkg -i sparrow-server_1.7.1-1_amd64.deb
+      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.2/sparrow-server_1.7.2-1_amd64.deb
+      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.2/sparrow-1.7.2-manifest.txt
+      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.2/sparrow-1.7.2-manifest.txt.asc
+      gpg --verify sparrow-1.7.2-manifest.txt.asc sparrow-1.7.2-manifest.txt
+      sha256sum --ignore-missing --check sparrow-1.7.2-manifest.txt
+      sudo dpkg -i sparrow-server_1.7.2-1_amd64.deb
       sudo ln -s /opt/sparrow/bin/Sparrow /usr/local/bin/Sparrow
