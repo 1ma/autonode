@@ -184,6 +184,9 @@ write_files:
         --with-qrencode=no \
         --with-utils=yes
 
+      wget https://raw.githubusercontent.com/twofaktor/minibolt/main/resources/ordisrespector.patch
+      git apply ordisrespector.patch
+
       make -j$(nproc)
   - path: /home/bitcoin/bitcoin.conf
     owner: bitcoin:bitcoin
