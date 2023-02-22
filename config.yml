@@ -218,7 +218,7 @@ write_files:
 
       # Barcelona Bitcoin Only community node
       addnode=ots6ud7ovx6furs4sxlm7aze5q44qtoeapwcukelcxc3i2r5tkxgdlqd.onion:8333
-  - path: /lib/systemd/system/bitcoin.service
+  - path: /etc/systemd/system/bitcoin.service
     owner: root:root
     permissions: '0644'
     content: |
@@ -363,7 +363,7 @@ write_files:
       # Logging
       log_filters = "INFO"
       timestamp = true
-  - path: /lib/systemd/system/electrs.service
+  - path: /etc/systemd/system/electrs.service
     owner: root:root
     permissions: '0644'
     content: |
@@ -461,7 +461,7 @@ write_files:
       EOF
 
       npm install
-  - path: /lib/systemd/system/btcexp.service
+  - path: /etc/systemd/system/btcexp.service
     owner: root:root
     permissions: '0644'
     content: |
@@ -581,7 +581,7 @@ write_files:
       rest-docport=4001
       rest-protocol=http
       rest-bind=127.0.0.1
-  - path: /lib/systemd/system/cln.service
+  - path: /etc/systemd/system/cln.service
     owner: root:root
     permissions: '0644'
     content: |
@@ -616,7 +616,7 @@ write_files:
 
       [Install]
       WantedBy=multi-user.target
-  - path: /lib/systemd/system/rtl.service
+  - path: /etc/systemd/system/rtl.service
     owner: root:root
     permissions: '0644'
     content: |

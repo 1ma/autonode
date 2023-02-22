@@ -42,7 +42,7 @@ The admin user is named `satoshi`, and is the only user in the system that has s
 The only way to SSH into the node is through this user, and you can only do so through public key authentication (password authentication is disabled).
 Satoshi can run the `bitcoin-cli` and `lightning-cli` commands, query all journalctl logs and edit the system services with systemctl.
 
-Each service has its own systemd service configuration at `/lib/systemd/system`, and its own dedicated user to run these services in isolation.
+Each service has its own systemd service configuration at `/etc/systemd/system`, and its own dedicated user to run these services in isolation.
 Source code, configuration files and data directories are located in the home directory of each of these system users. Satoshi can impersonate each
 of these users with the su command, e.g. `sudo su - electrs` if you need to update or tweak the configuration of any of these programs.
 Also, a few of the binaries that are built by hand are installed in `/usr/local/bin`.
