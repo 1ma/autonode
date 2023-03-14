@@ -11,7 +11,7 @@ A [cloud-init](https://cloud-init.io) template to build Bitcoin nodes automatica
 AutoNode is designed to automate the initial installation of Bitcoin+Lightning nodes while still retaining the transparency that most other ready-made solutions lack.
 As such, it's not very suitable for first time node builders.
 
-If you've never built a Do It Yourself (DIY) node I encourage you to instead check out [RaspiBolt](https://raspibolt.org/) or its Intel/AMD fork, [MiniBolt](https://raspibolt.org/).
+If you've never built a Do-It-Yourself (DIY) node I encourage you to instead check out [RaspiBolt](https://raspibolt.org/) or its Intel/AMD fork, [MiniBolt](https://raspibolt.org/).
 If you prefer the video format check out 402PaymentRequired's excellent [Bitcoin & Lightning Server](https://www.youtube.com/watch?v=_Hrnls92TxQ) walkthrough that does the job in less than an hour.
 
 Once you've built at least one node you'll recognize most of the elements of the AutoNode template even if you've never used cloud-init, and you'll be able to tailor it to your own taste.
@@ -21,17 +21,17 @@ Once you've built at least one node you'll recognize most of the elements of the
 | Service              | Version  | Local Ports (127.0.0.1) | Tor Hidden Service | Nginx TLS (0.0.0.0) | Depends on            |
 |----------------------|----------|-------------------------|--------------------|---------------------|-----------------------|
 | [Bitcoin Core]       | v23.1    | :8333 :8332 (rpc)       | :8333              | No                  | Nothing               |
-| [Electrs Server]     | v0.9.11  | :50001                  | :50001             | :50011              | Bitcoin Core          |
+| [Electrs Server]     | v0.9.12  | :50001                  | :50001             | :50011              | Bitcoin Core          |
 | [BTC RPC Explorer]   | v3.3.0   | :3002                   | :80                | :3012               | Bitcoin Core, Electrs |
-| [Core Lightning]     | v22.11.1 | :9736                   | :9736              | No                  | Bitcoin Core          |
-| [c-lightning-REST]   | v0.10.0  | :3001 :4001 (doc)       | :3001 :4001 (doc)  | :3011 :4011 (doc)   | Core Lightning        |
-| [Ride The Lightning] | v0.13.4  | :3000                   | :80                | :3010               | Core Lightning        |
+| [Core Lightning]     | v23.02.2 | :9736                   | :9736              | No                  | Bitcoin Core          |
+| [c-lightning-REST]   | v0.10.2  | :3001 :4001 (doc)       | :3001 :4001 (doc)  | :3011 :4011 (doc)   | Core Lightning        |
+| [Ride The Lightning] | v0.13.6  | :3000                   | :80                | :3010               | Core Lightning        |
 
 The OpenSSH server is also exposed as a Tor hidden service on port 22.
 
 ### Other Software
 
-* Sparrow Server 1.7.2
+* Sparrow Server 1.7.3
 * WireGuard
 * tmux
 * rust-teos Watchtower plugin for Core Lightning

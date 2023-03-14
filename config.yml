@@ -82,6 +82,7 @@ packages:
   - nginx
   - nodejs
   - pkg-config
+  - protobuf-compiler
   - python3-dev
   - python3-pip
   - qrencode
@@ -330,7 +331,7 @@ write_files:
 
       set -euo pipefail
 
-      export ELECTRS_VERSION=v0.9.11
+      export ELECTRS_VERSION=v0.9.12
 
       git clone https://github.com/romanz/electrs.git code
 
@@ -495,10 +496,10 @@ write_files:
       echo "datadir=/home/bitcoin/data" > .bitcoin/bitcoin.conf
 
       wget -q -O- https://sh.rustup.rs | sh -s -- -y
-      pip3 install mako poetry
+      pip3 install mako
       source .profile
 
-      export CLN_REST_VERSION=v0.10.0
+      export CLN_REST_VERSION=v0.10.2
 
       wget -q -O- https://keybase.io/suheb/pgp_keys.asc | gpg --import -
       wget -O- https://blog.1mahq.com/keys/cln_developers.pem | gpg --import -
@@ -511,7 +512,7 @@ write_files:
       git verify-tag ${CLN_REST_VERSION}
       npm install
 
-      export CLN_VERSION=v22.11.1
+      export CLN_VERSION=v23.02.2
       export LDFLAGS="-s"
 
       cd ..
@@ -520,11 +521,14 @@ write_files:
       cd lightning
       git checkout ${CLN_VERSION}
       git verify-tag ${CLN_VERSION}
-      poetry install
-      ./configure --enable-experimental-features
+
+      ./configure \
+        --enable-experimental-features \
+        --enable-static
+
       make -j$(nproc)
 
-      export TEOS_COMMIT=1faf361a7f35c4b75aa1681f46f0bc0d0500dc9b
+      export TEOS_COMMIT=886e0fffe5cb0e6f0e87edfefd60f4a322a8c6ee
 
       cd ..
       git clone https://github.com/talaia-labs/rust-teos
@@ -693,7 +697,7 @@ write_files:
 
       set -euo pipefail
 
-      export RTL_VERSION=v0.13.4
+      export RTL_VERSION=v0.13.6
 
       wget -q -O- https://keybase.io/suheb/pgp_keys.asc | gpg --import -
       git clone https://github.com/Ride-The-Lightning/RTL.git code
@@ -767,10 +771,10 @@ write_files:
 
       # Install Sparrow Server
       wget -q -O- https://keybase.io/craigraw/pgp_keys.asc | gpg --import
-      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.2/sparrow-server_1.7.2-1_amd64.deb
-      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.2/sparrow-1.7.2-manifest.txt
-      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.2/sparrow-1.7.2-manifest.txt.asc
-      gpg --verify sparrow-1.7.2-manifest.txt.asc sparrow-1.7.2-manifest.txt
-      sha256sum --ignore-missing --check sparrow-1.7.2-manifest.txt
-      sudo dpkg -i sparrow-server_1.7.2-1_amd64.deb
+      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.3/sparrow-server_1.7.3-1_amd64.deb
+      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.3/sparrow-1.7.3-manifest.txt
+      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.3/sparrow-1.7.3-manifest.txt.asc
+      gpg --verify sparrow-1.7.3-manifest.txt.asc sparrow-1.7.3-manifest.txt
+      sha256sum --ignore-missing --check sparrow-1.7.3-manifest.txt
+      sudo dpkg -i sparrow-server_1.7.3-1_amd64.deb
       sudo ln -s /opt/sparrow/bin/Sparrow /usr/local/bin/Sparrow
