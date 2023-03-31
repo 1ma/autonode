@@ -21,7 +21,7 @@ Once you've built at least one node you'll recognize most of the elements of the
 | Service              | Version  | Local Ports (127.0.0.1) | Tor Hidden Service | Nginx TLS (0.0.0.0) | Depends on            |
 |----------------------|----------|-------------------------|--------------------|---------------------|-----------------------|
 | [Bitcoin Core]       | v23.1    | :8333 :8332 (rpc)       | :8333              | No                  | Nothing               |
-| [Electrs Server]     | v0.9.12  | :50001                  | :50001             | :50011              | Bitcoin Core          |
+| [Electrs Server]     | v0.9.13  | :50001                  | :50001             | :50011              | Bitcoin Core          |
 | [BTC RPC Explorer]   | v3.3.0   | :3002                   | :80                | :3012               | Bitcoin Core, Electrs |
 | [Core Lightning]     | v23.02.2 | :9736                   | :9736              | No                  | Bitcoin Core          |
 | [c-lightning-REST]   | v0.10.2  | :3001 :4001 (doc)       | :3001 :4001 (doc)  | :3011 :4011 (doc)   | Core Lightning        |

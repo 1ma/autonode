@@ -339,7 +339,7 @@ write_files:
 
       set -euo pipefail
 
-      export ELECTRS_VERSION=v0.9.12
+      export ELECTRS_VERSION=v0.9.13
 
       git clone https://github.com/romanz/electrs.git code
 
