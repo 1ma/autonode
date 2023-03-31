@@ -105,6 +105,14 @@ power_state:
   mode: reboot
 
 write_files:
+  - path: /etc/sysctl.d/99-swap-optimizations.conf
+    owner: root:root
+    permissions: '0644'
+    content: |
+      # https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-22-04
+
+      vm.swappiness=5
+      vm.vfs_cache_pressure=50
   - path: /etc/tor/torrc
     owner: root:root
     defer: true
