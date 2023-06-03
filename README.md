@@ -18,20 +18,20 @@ Once you've built at least one node you'll recognize most of the elements of the
 
 ## Node Services
 
-| Service              | Version  | Local Ports (127.0.0.1) | Tor Hidden Service | Nginx TLS (0.0.0.0) | Depends on            |
-|----------------------|----------|-------------------------|--------------------|---------------------|-----------------------|
-| [Bitcoin Core]       | v23.1    | :8333 :8332 (rpc)       | :8333              | No                  | Nothing               |
-| [Electrs Server]     | v0.9.13  | :50001                  | :50001             | :50011              | Bitcoin Core          |
-| [BTC RPC Explorer]   | v3.3.0   | :3002                   | :80                | :3012               | Bitcoin Core, Electrs |
-| [Core Lightning]     | v23.02.2 | :9736                   | :9736              | No                  | Bitcoin Core          |
-| [c-lightning-REST]   | v0.10.2  | :3001 :4001 (doc)       | :3001 :4001 (doc)  | :3011 :4011 (doc)   | Core Lightning        |
-| [Ride The Lightning] | v0.13.6  | :3000                   | :80                | :3010               | Core Lightning        |
+| Service              | Version | Local Ports (127.0.0.1) | Tor Hidden Service | Nginx TLS (0.0.0.0) | Depends on            |
+|----------------------|---------|-------------------------|--------------------|---------------------|-----------------------|
+| [Bitcoin Core]       | v23.2   | :8333 :8332 (rpc)       | :8333              | No                  | Nothing               |
+| [Electrs Server]     | v0.9.14 | :50001                  | :50001             | :50011              | Bitcoin Core          |
+| [BTC RPC Explorer]   | v3.4.0  | :3002                   | :80                | :3012               | Bitcoin Core, Electrs |
+| [Core Lightning]     | v23.05  | :9736                   | :9736              | No                  | Bitcoin Core          |
+| [c-lightning-REST]   | v0.10.4 | :3001 :4001 (doc)       | :3001 :4001 (doc)  | :3011 :4011 (doc)   | Core Lightning        |
+| [Ride The Lightning] | v0.14.0 | :3000                   | :80                | :3010               | Core Lightning        |
 
 The OpenSSH server is also exposed as a Tor hidden service on port 22.
 
 ### Other Software
 
-* Sparrow Server 1.7.3
+* Sparrow Server 1.7.7
 * WireGuard
 * tmux
 * rust-teos Watchtower plugin for Core Lightning
