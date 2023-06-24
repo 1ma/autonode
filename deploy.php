@@ -13,7 +13,6 @@ host('autonode.1mahq.com')
     ->setDeployPath('~/{{application}}')
     ->setSshArguments([
         '-o StrictHostKeyChecking=accept-new',
-        '-p 2009'
     ]);
 
 task('autonode:build', static function () {

@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace AutoNode\Domain;
 
-use function array_map;
-use function array_merge;
-use function array_reduce;
-
 final class CloudInitTemplate
 {
     private string $hostname;
@@ -75,8 +71,8 @@ TXT
             'locale' => $this->locale,
             'system_info' => [
                 'default_user' => [
-                    'name' => $this->adminUser->getName()
-                ]
+                    'name' => $this->adminUser->getName(),
+                ],
             ],
             'users' => [
                 ...array_map(fn (User $u): array => $u->toArray(), $this->systemUsers),

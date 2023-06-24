@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace AutoNode\Domain;
 
-use function array_keys;
-use function ksort;
-
 final class User
 {
     private readonly string $name;

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace AutoNode\DI;
 
 use AutoNode\Handlers\GenerateTemplate;
-use AutoNode\Handlers\GenerateTemplate\ExtraAuthenticationMethod;
 use AutoNode\Handlers\LandingPage;
 use Psr\Http\Server\RequestHandlerInterface;
 use Twig\Environment;
@@ -19,10 +18,10 @@ final class Handlers implements ServiceProvider
     {
         $c->set(Environment::class, static function (): Environment {
             return new Environment(
-                new FilesystemLoader(__ROOT__ . '/tpl'),
+                new FilesystemLoader(__ROOT__.'/tpl'),
                 [
                     'debug' => true,
-                    'strict_variables' => true
+                    'strict_variables' => true,
                 ]
             );
         });

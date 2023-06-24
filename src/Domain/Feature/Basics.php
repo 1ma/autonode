@@ -10,9 +10,6 @@ use AutoNode\Domain\TorHiddenService;
 
 final class Basics implements Feature
 {
-    /**
-     * @inheritDoc
-     */
     public function getSources(): array
     {
         return [
@@ -34,17 +31,11 @@ final class Basics implements Feature
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFiles(): array
     {
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getUsers(): array
     {
         return [];
@@ -53,13 +44,10 @@ final class Basics implements Feature
     public function torHiddenServices(): array
     {
         return [
-            new TorHiddenService('ssh', 22, 22)
+            new TorHiddenService('ssh', 22, 22),
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPackages(): array
     {
         return [
@@ -72,9 +60,6 @@ final class Basics implements Feature
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function adminGroups(): array
     {
         return [
@@ -83,7 +68,7 @@ final class Basics implements Feature
             'dip',
             'lxd',
             'plugdev',
-            'sudo'
+            'sudo',
         ];
     }
 }

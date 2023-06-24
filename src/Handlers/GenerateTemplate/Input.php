@@ -24,9 +24,9 @@ final class Input
     {
     }
 
-    public static function fromForm(array $form): Input
+    public static function fromForm(array $form): self
     {
-        $input = new Input();
+        $input = new self();
 
         $input->admin = $form['admin-username'];
         $input->hostname = $form['hostname'];
@@ -37,30 +37,30 @@ final class Input
         $input->withWireGuard = ($form['with-wireguard'] ?? '') === 'on';
 
         $input->bitcoinCore = [];
-        if ($form['bitcoin-core-version'] !== 'none') {
+        if ('none' !== $form['bitcoin-core-version']) {
             $input->bitcoinCore['version'] = $form['bitcoin-core-version'];
             $input->bitcoinCore['dbcache'] = (int) $form['bitcoin-core-dbcache'];
         }
 
         $input->electrs = [];
-        if ($form['electrs-version'] !== 'none') {
+        if ('none' !== $form['electrs-version']) {
             $input->electrs['version'] = $form['electrs-version'];
         }
 
         $input->btcRpcExplorer = [];
-        if ($form['btcexp-version'] !== 'none') {
+        if ('none' !== $form['btcexp-version']) {
             $input->btcRpcExplorer['version'] = $form['btcexp-version'];
             $input->btcRpcExplorer['currency'] = $form['btcexp-currency'];
             $input->btcRpcExplorer['theme'] = $form['btcexp-theme'];
         }
 
         $input->coreLightning = [];
-        if ($form['cln-version'] !== 'none') {
+        if ('none' !== $form['cln-version']) {
             $input->coreLightning['cln'] = $form['electrs-version'];
         }
 
         $input->rideTheLightning = [];
-        if ($form['rtl-version'] !== 'none') {
+        if ('none' !== $form['rtl-version']) {
             $input->rideTheLightning['version'] = $form['rtl-version'];
         }
 

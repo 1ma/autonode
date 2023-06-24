@@ -9,8 +9,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Twig\Environment;
-use function array_filter;
-use function preg_match;
 
 final class ExtraSAN implements RequestHandlerInterface
 {
@@ -27,19 +25,19 @@ final class ExtraSAN implements RequestHandlerInterface
 
         $filteredForm = array_filter(
             $form,
-            fn(string $value, string $key): bool => (preg_match('/^san\-data\-\d+$/', $key) + preg_match('/^san\-type\-\d+$/', $key)) && !empty($value),
-            ARRAY_FILTER_USE_BOTH
+            fn (string $value, string $key): bool => (preg_match('/^san\-data\-\d+$/', $key) + preg_match('/^san\-type\-\d+$/', $key)) && !empty($value),
+            \ARRAY_FILTER_USE_BOTH
         );
 
         $san = [];
         foreach ($filteredForm as $name => $value) {
-                if (preg_match('/^san\-type\-(\d+)$/', $name, $match)) {
-                    $san[(int) $match[1]]['type'] = $value;
-                }
+            if (preg_match('/^san\-type\-(\d+)$/', $name, $match)) {
+                $san[(int) $match[1]]['type'] = $value;
+            }
 
-                if (preg_match('/^san\-data\-(\d+)$/', $name, $match)) {
-                    $san[(int) $match[1]]['data'] = $value;
-                }
+            if (preg_match('/^san\-data\-(\d+)$/', $name, $match)) {
+                $san[(int) $match[1]]['data'] = $value;
+            }
         }
 
         $san[] = ['type' => null, 'data' => null];

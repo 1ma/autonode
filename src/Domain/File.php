@@ -22,16 +22,16 @@ final class File
         $this->append = $append;
         $this->content = $content;
 
-        if ($this->content[-1] !== "\n") {
+        if ("\n" !== $this->content[-1]) {
             $this->content .= "\n";
         }
     }
 
     public function appendContent(string $moreContent): void
     {
-        $this->content .= "\n" . $moreContent;
+        $this->content .= "\n".$moreContent;
 
-        if ($this->content[-1] !== "\n") {
+        if ("\n" !== $this->content[-1]) {
             $this->content .= "\n";
         }
     }
@@ -44,7 +44,7 @@ final class File
             'defer' => $this->defer,
             'append' => $this->append,
             'permissions' => $this->permissions,
-            'content' => $this->content
+            'content' => $this->content,
         ];
     }
 }

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AutoNode\Handlers;
 
-use AutoNode\Domain\Feature\Basics;
 use AutoNode\Domain\CloudInitTemplate;
+use AutoNode\Domain\Feature\Basics;
 use AutoNode\Domain\User;
 use AutoNode\Handlers\GenerateTemplate\Input;
 use Nyholm\Psr7\Response;
@@ -30,7 +30,7 @@ final class GenerateTemplate implements RequestHandlerInterface
         return new Response(
             200,
             ['Content-Type' => 'application/yaml', 'Content-Disposition' => 'attachment; filename="autoinstall.yml"'],
-            "#cloud-config\n\n" . Yaml::dump($template->toArray(), 6, 2, Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK)
+            "#cloud-config\n\n".Yaml::dump($template->toArray(), 6, 2, Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK)
         );
     }
 }

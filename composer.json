@@ -4,15 +4,15 @@
     "license": "MIT",
     "require": {
         "jelly/jelly": "dev-master",
-        "nyholm/psr7": "^1.5",
-        "symfony/yaml": "^6.2",
-        "twig/twig": "^3.5",
+        "nyholm/psr7": "^1.8",
+        "symfony/yaml": "^6.3",
+        "twig/twig": "^3.7",
         "uma/dic": "^3.0"
     },
     "require-dev": {
         "deployer/deployer": "^7.3",
-        "friendsofphp/php-cs-fixer": "^3.15",
-        "phpunit/phpunit": "^10.0",
+        "friendsofphp/php-cs-fixer": "^3.26",
+        "phpunit/phpunit": "^10.3",
         "roave/security-advisories": "dev-latest"
     },
     "autoload": {
@@ -22,7 +22,7 @@
     },
     "scripts": {
         "serve": "@php -S localhost:8080 -t web cli-app.php",
-        "lint": "@php vendor/bin/php-cs-fixer fix ./src"
+        "lint": "@php vendor/bin/php-cs-fixer fix -v"
     },
     "config": {
         "process-timeout": 0,
