@@ -339,7 +339,7 @@ write_files:
 
       set -euo pipefail
 
-      export ELECTRS_VERSION=v0.9.14
+      export ELECTRS_VERSION=v0.10.0
 
       git clone https://github.com/romanz/electrs.git code
 
@@ -507,7 +507,7 @@ write_files:
       pip3 install mako
       source .profile
 
-      export CLN_REST_VERSION=v0.10.4
+      export CLN_REST_VERSION=v0.10.5
 
       wget -q -O- https://keybase.io/suheb/pgp_keys.asc | gpg --import -
       wget -O- https://raw.githubusercontent.com/1ma/dockertronics/master/core-lightning/developer_pubkeys.pem | gpg --import -
@@ -520,7 +520,7 @@ write_files:
       git verify-tag ${CLN_REST_VERSION}
       npm install
 
-      export CLN_VERSION=v23.05
+      export CLN_VERSION=v23.05.2
       export LDFLAGS="-s"
 
       cd ..
@@ -582,8 +582,8 @@ write_files:
 
       # network
       proxy=127.0.0.1:9050
-      bind-addr=127.0.0.1:9736
-      addr=statictor:127.0.0.1:9051/torport=9736
+      bind-addr=127.0.0.1:9735
+      addr=statictor:127.0.0.1:9051/torport=9735
       always-use-proxy=true
 
       plugin-dir=/home/cln/.lightning/plugins
@@ -779,10 +779,10 @@ write_files:
 
       # Install Sparrow Server
       wget -q -O- https://keybase.io/craigraw/pgp_keys.asc | gpg --import
-      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.7/sparrow-server_1.7.7-1_amd64.deb
-      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.7/sparrow-1.7.7-manifest.txt
-      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.7/sparrow-1.7.7-manifest.txt.asc
-      gpg --verify sparrow-1.7.7-manifest.txt.asc sparrow-1.7.7-manifest.txt
-      sha256sum --ignore-missing --check sparrow-1.7.7-manifest.txt
-      sudo dpkg -i sparrow-server_1.7.7-1_amd64.deb
+      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.8/sparrow-server_1.7.8-1_amd64.deb
+      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.8/sparrow-1.7.8-manifest.txt
+      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.8/sparrow-1.7.8-manifest.txt.asc
+      gpg --verify sparrow-1.7.8-manifest.txt.asc sparrow-1.7.8-manifest.txt
+      sha256sum --ignore-missing --check sparrow-1.7.8-manifest.txt
+      sudo dpkg -i sparrow-server_1.7.8-1_amd64.deb
       sudo ln -s /opt/sparrow/bin/Sparrow /usr/local/bin/Sparrow
