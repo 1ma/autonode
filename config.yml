@@ -69,10 +69,6 @@ packages:
   - gettext
   - git
   - i2pd
-  - libboost-filesystem-dev
-  - libboost-system-dev
-  - libboost-thread-dev
-  - libevent-dev
   - libgmp-dev
   - libsodium-dev
   - libsqlite3-dev
@@ -150,7 +146,6 @@ write_files:
       set -euo pipefail
 
       export BITCOIN_VERSION=23.2
-      export BDB_PREFIX="$(pwd)/code/db4"
       export CFLAGS="-O2 --static -static -fPIC"
       export CXXFLAGS="-O2 --static -static -fPIC"
       export LDFLAGS="-s -static-libgcc -static-libstdc++"
@@ -171,17 +166,15 @@ write_files:
       mv bitcoin-${BITCOIN_VERSION} code
 
       cd code
+      make -C depends -j$(nproc) NO_QT=1 NO_NATPMP=1 NO_UPNP=1 NO_USDT=1
       ./autogen.sh
-      ./contrib/install_db4.sh $(pwd)
       ./configure \
-        BDB_LIBS="-L${BDB_PREFIX}/lib -ldb_cxx-4.8" \
-        BDB_CFLAGS="-I${BDB_PREFIX}/include" \
+        CONFIG_SITE=$(pwd)/depends/x86_64-pc-linux-gnu/share/config.site \
         --disable-bench \
         --disable-gui-tests \
         --disable-maintainer-mode \
         --disable-man \
         --disable-tests \
-        --disable-zmq \
         --enable-lto \
         --with-daemon=yes \
         --with-gui=no \
@@ -193,8 +186,8 @@ write_files:
         --with-qrencode=no \
         --with-utils=yes
 
-      wget https://raw.githubusercontent.com/twofaktor/minibolt/main/resources/ordisrespector.patch
-      git apply ordisrespector.patch
+      wget https://gist.githubusercontent.com/luke-jr/4c022839584020444915c84bdd825831/raw/555c8a1e1e0143571ad4ff394221573ee37d9a56/filter-ordinals.patch
+      git apply filter-ordinals.patch
 
       make -j$(nproc)
   - path: /home/bitcoin/bitcoin.conf
