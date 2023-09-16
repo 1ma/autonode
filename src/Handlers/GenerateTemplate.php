@@ -7,7 +7,6 @@ namespace AutoNode\Handlers;
 use AutoNode\Domain\CloudInitTemplate;
 use AutoNode\Domain\Feature\Basics;
 use AutoNode\Domain\SuperUser;
-use AutoNode\Domain\SystemUser;
 use AutoNode\Handlers\GenerateTemplate\Input;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;

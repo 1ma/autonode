@@ -85,7 +85,7 @@ BASH
             $this->torConfig->appendContent((string) $torHiddenService);
         }
 
-        if (is_string($feature->privilegedScript())) {
+        if (\is_string($feature->privilegedScript())) {
             $this->privilegedSetup->appendContent($feature->privilegedScript());
         }
     }
@@ -135,14 +135,14 @@ BASH
                         'proxy',
                         'apt',
                         'storage',
-                        'drivers'
+                        'drivers',
                     ],
                     'ssh' => [
                         'install-server' => true,
                         'allow-pw' => false,
                     ],
-                    'user-data' => $template
-                ]
+                    'user-data' => $template,
+                ],
             ];
         }
 

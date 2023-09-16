@@ -6,10 +6,11 @@ namespace AutoNode\Domain\Feature;
 
 use AutoNode\Domain\APTSource;
 use AutoNode\Domain\Feature;
+use AutoNode\Domain\File;
 use AutoNode\Domain\TorHiddenService;
 
 /**
- * Base software
+ * Base software.
  */
 final class Basics implements Feature
 {
@@ -36,7 +37,21 @@ final class Basics implements Feature
 
     public function files(): array
     {
-        return [];
+        return [
+            new File(
+                '/etc/sysctl.d/99-swap-optimizations.conf',
+                'root:root',
+                '0644',
+                false,
+                false,
+                <<<TXT
+# https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-22-04
+
+vm.swappiness=5
+vm.vfs_cache_pressure=50
+TXT
+            ),
+        ];
     }
 
     public function users(): array
