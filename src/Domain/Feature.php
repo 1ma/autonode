@@ -4,23 +4,60 @@ declare(strict_types=1);
 
 namespace AutoNode\Domain;
 
+/**
+ * Implement this interface to add new software to the AutoNode template
+ */
 interface Feature
 {
-    /** @return APTSource[] */
-    public function getSources(): array;
+    /**
+     * Additional APT sources for the OS
+     *
+     * @return APTSource[]
+     */
+    public function sources(): array;
 
-    /** @return File[] */
-    public function getFiles(): array;
+    /**
+     * Additional files to be written in the filesystem
+     *
+     * @return File[]
+     */
+    public function files(): array;
 
-    /** @return User[] */
-    public function getUsers(): array;
+    /**
+     * Additional users to be created
+     *
+     * @return SystemUser[]
+     */
+    public function users(): array;
 
-    /** @return TorHiddenService[] */
+    /**
+     * Additional Tor hidden services to be created
+     *
+     * @return TorHiddenService[]
+     */
     public function torHiddenServices(): array;
 
-    /** @return string[] */
+    /**
+     * System groups to where the admin user will be included
+     *
+     * @return string[]
+     */
     public function adminGroups(): array;
 
-    /** @return string[] */
-    public function getPackages(): array;
+    /**
+     * Additional packages to be installed
+     *
+     * @return string[]
+     */
+    public function packages(): array;
+
+    /**
+     * Additional lines of Bash script to be appended
+     * to the privileged post-install script.
+     *
+     * Return null if not needed
+     *
+     * @return string|null
+     */
+    public function privilegedScript(): ?string;
 }

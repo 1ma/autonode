@@ -6,7 +6,8 @@ namespace AutoNode\Handlers;
 
 use AutoNode\Domain\CloudInitTemplate;
 use AutoNode\Domain\Feature\Basics;
-use AutoNode\Domain\User;
+use AutoNode\Domain\SuperUser;
+use AutoNode\Domain\SystemUser;
 use AutoNode\Handlers\GenerateTemplate\Input;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
@@ -20,11 +21,11 @@ final class GenerateTemplate implements RequestHandlerInterface
     {
         $input = Input::fromForm($request->getParsedBody());
 
-        $adminUser = new User($input->admin, 'Admin user', true);
-        $adminUser->addAuthorizedKey('ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKwg+bJZ7RVMbwslBzMlN2+Hfe13fCD8u2IxAZZoHeQ5 root@d2db98313a74');
-        $adminUser->addImportId('gh', '1ma');
+        $admin = new SuperUser($input->admin);
+        $admin->addAuthorizedKey('ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKwg+bJZ7RVMbwslBzMlN2+Hfe13fCD8u2IxAZZoHeQ5 root@d2db98313a74');
+        $admin->addImportId('gh', '1ma');
 
-        $template = new CloudInitTemplate($input->hostname, $input->locale, $adminUser);
+        $template = new CloudInitTemplate($input->hostname, $input->locale, true, $admin);
         $template->add(new Basics());
 
         return new Response(

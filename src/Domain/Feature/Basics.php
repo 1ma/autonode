@@ -8,9 +8,12 @@ use AutoNode\Domain\APTSource;
 use AutoNode\Domain\Feature;
 use AutoNode\Domain\TorHiddenService;
 
+/**
+ * Base software
+ */
 final class Basics implements Feature
 {
-    public function getSources(): array
+    public function sources(): array
     {
         return [
             new APTSource(
@@ -31,12 +34,12 @@ final class Basics implements Feature
         ];
     }
 
-    public function getFiles(): array
+    public function files(): array
     {
         return [];
     }
 
-    public function getUsers(): array
+    public function users(): array
     {
         return [];
     }
@@ -48,7 +51,7 @@ final class Basics implements Feature
         ];
     }
 
-    public function getPackages(): array
+    public function packages(): array
     {
         return [
             'apt-transport-https',
@@ -62,13 +65,11 @@ final class Basics implements Feature
 
     public function adminGroups(): array
     {
-        return [
-            'adm',
-            'cdrom',
-            'dip',
-            'lxd',
-            'plugdev',
-            'sudo',
-        ];
+        return [];
+    }
+
+    public function privilegedScript(): ?string
+    {
+        return null;
     }
 }
