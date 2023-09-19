@@ -11,7 +11,7 @@
     },
     "require-dev": {
         "deployer/deployer": "^7.3",
-        "friendsofphp/php-cs-fixer": "^3.26",
+        "friendsofphp/php-cs-fixer": "^3.27",
         "phpunit/phpunit": "^10.3",
         "roave/security-advisories": "dev-latest"
     },
