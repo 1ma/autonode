@@ -1,0 +1,38 @@
+name: 'AutoNode CI/CD'
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  ci:
+    name: Continuous Integration
+    runs-on: ubuntu-latest
+    container: 1maa/php-dev:8.2
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Install PHP dependencies for testing
+        run: |
+          composer install
+      - name: Ensure code is well formatted
+        run: |
+          php vendor/bin/php-cs-fixer fix --dry-run -v
+  cd:
+    name: Continuous Deployment
+    runs-on: ubuntu-latest
+    container: 1maa/php-dev:8.2
+    needs:
+      - ci
+    if: ${{ github.ref == 'refs/heads/webapp' }}
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Install OS dependencies for deployment
+        run: |
+          apk add bash openssh-client rsync
+      - name: Deploy AutoNode
+        run: |
+          eval $(ssh-agent -s)
+          echo "${{secrets.SSH_PRIVATE_KEY}}" | ssh-add -
+          dep autonode:deploy -vv

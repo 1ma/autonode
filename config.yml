@@ -71,7 +71,6 @@ packages:
   - i2pd
   - libgmp-dev
   - libsodium-dev
-  - libsqlite3-dev
   - libssl-dev
   - libtool
   - net-tools

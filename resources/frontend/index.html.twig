@@ -1,0 +1,129 @@
+{% extends 'layout.html.twig' %}
+
+{% block content %}
+    <h1>AutoNode Template Generator</h1>
+    <form method="post" action="/generate">
+        <fieldset>
+            <legend>General Settings</legend>
+            <p>
+                <label>
+                    x86_64 bare metal installation
+                    <input name="x86-install" type="checkbox">
+                </label>
+            </p>
+            <p>
+                <label>
+                    Username
+                    <input name="admin-username" type="text" value="satoshi" required>
+                </label>
+            </p>
+            <p>
+                <label>
+                    Hostname
+                    <input name="hostname" type="text" value="autonode" required>
+                </label>
+            </p>
+            <p>
+                <label>
+                    Locale
+                    <input name="locale" type="text" value="en_US.UTF-8" required>
+                </label>
+            </p>
+            {% include 'ssh_form.html.twig' %}
+        </fieldset>
+        <fieldset>
+            <legend>Bitcoin Core</legend>
+            <p>
+                <label>
+                    Version
+                    <select name="bitcoin-core-version">
+                        <option value="v23.2">v23.2</option>
+                        <option value="none">None</option>
+                    </select>
+                </label>
+            </p>
+            <p>
+                <label>
+                    DBCache Size (MiB)
+                    <input name="bitcoin-core-dbcache" type="number" value="1024" required>
+                </label>
+            </p>
+        </fieldset>
+        <fieldset>
+            <legend>Electrs Server</legend>
+            <p>
+                <label>
+                    Version
+                    <select name="electrs-version">
+                        <option value="v0.10.0">v0.10.0</option>
+                        <option value="none">None</option>
+                    </select>
+                </label>
+            </p>
+        </fieldset>
+        <fieldset>
+            <legend>BTC RPC Explorer</legend>
+            <p>
+                <label>
+                    Version
+                    <select name="btcexp-version">
+                        <option value="v3.4.0">v3.4.0</option>
+                        <option value="none">None</option>
+                    </select>
+                </label>
+            </p>
+            <p>
+                <label>
+                    Currency
+                    <select name="btcexp-currency">
+                        <option value="eur">EUR</option>
+                        <option value="usd">USD</option>
+                    </select>
+                </label>
+            </p>
+            <p>
+                <label>
+                    Theme
+                    <select name="btcexp-theme">
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                    </select>
+                </label>
+            </p>
+        </fieldset>
+        <fieldset>
+            <legend>Core Lightning</legend>
+            <p>
+                <label>
+                    Version
+                    <select name="cln-version">
+                        <option value="none">None</option>
+                        <option value="v23.05.2">v23.05.2</option>
+                    </select>
+                </label>
+            </p>
+        </fieldset>
+        <fieldset>
+            <legend>Ride The Lightning</legend>
+            <p>
+                <label>
+                    Version
+                    <select name="rtl-version">
+                        <option value="none">None</option>
+                        <option value="v0.14.0">v0.14.0</option>
+                    </select>
+                </label>
+            </p>
+        </fieldset>
+        <fieldset>
+            <legend>Miscellaneous Software</legend>
+            <p>
+                <label>
+                    Sparrow Server
+                    <input name="with-sparrow" type="checkbox" checked>
+                </label>
+            </p>
+        </fieldset>
+        <input type="submit" value="Generate Template">
+    </form>
+{% endblock %}
