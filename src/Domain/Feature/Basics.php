@@ -46,6 +46,14 @@ final class Basics implements Feature
                 false,
                 file_get_contents(__ROOT__.'/resources/basics/99-swap-optimizations.conf'),
             ),
+            new File(
+                '/etc/nginx/nginx.conf',
+                'root:root',
+                '0644',
+                true,
+                false,
+                file_get_contents(__ROOT__.'/resources/basics/nginx.conf'),
+            ),
         ];
     }
 
@@ -65,7 +73,10 @@ final class Basics implements Feature
     {
         return [
             'apt-transport-https',
+            'ca-certificates',
+            'curl',
             'fail2ban',
+            'git',
             'net-tools',
             'nginx',
             'tor',

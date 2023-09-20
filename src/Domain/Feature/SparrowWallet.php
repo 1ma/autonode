@@ -40,6 +40,6 @@ final class SparrowWallet implements Feature
 
     public function privilegedScript(): ?string
     {
-        return null;
+        return file_get_contents(__ROOT__.'/resources/sparrow-server/sparrow-server-privileged.sh');
     }
 }

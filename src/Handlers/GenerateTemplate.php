@@ -6,6 +6,8 @@ namespace AutoNode\Handlers;
 
 use AutoNode\Domain\CloudInitTemplate;
 use AutoNode\Domain\Feature\Basics;
+use AutoNode\Domain\Feature\BitcoinCore;
+use AutoNode\Domain\Feature\SparrowWallet;
 use AutoNode\Domain\SuperUser;
 use AutoNode\Handlers\GenerateTemplate\Input;
 use Nyholm\Psr7\Response;
@@ -37,6 +39,8 @@ final class GenerateTemplate implements RequestHandlerInterface
 
         $template = new CloudInitTemplate($input->hostname, $input->locale, $input->x86install, $admin);
         $template->add(new Basics());
+        $template->add(new BitcoinCore());
+        $template->add(new SparrowWallet());
 
         return new Response(
             200,

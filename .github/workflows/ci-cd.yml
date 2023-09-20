@@ -22,9 +22,9 @@ jobs:
     name: Continuous Deployment
     runs-on: ubuntu-latest
     container: 1maa/php-dev:8.2
+    if: ${{ github.ref == 'refs/heads/master' }}
     needs:
       - ci
-    if: ${{ github.ref == 'refs/heads/master' }}
     steps:
       - name: Checkout project
         uses: actions/checkout@v4

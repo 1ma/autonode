@@ -57,10 +57,10 @@ final class CloudInitTemplate
     {
         $this->users = array_merge($this->users, $feature->users());
         $this->files = array_merge($this->files, $feature->files());
-        $this->packages = array_merge($this->packages, $feature->packages());
+        $this->packages = array_unique(array_merge($this->packages, $feature->packages()));
         $this->sources = array_merge($this->sources, $feature->sources());
 
-        // TODO sort some of these arrays
+        sort($this->packages);
 
         foreach ($feature->adminGroups() as $adminGroup) {
             $this->admin->addGroup($adminGroup);
