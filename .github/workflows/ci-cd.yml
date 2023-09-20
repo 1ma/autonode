@@ -24,7 +24,7 @@ jobs:
     container: 1maa/php-dev:8.2
     needs:
       - ci
-    if: ${{ github.ref == 'refs/heads/webapp' }}
+    if: ${{ github.ref == 'refs/heads/master' }}
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
