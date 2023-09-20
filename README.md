@@ -25,7 +25,7 @@ Once you've built at least one node you'll recognize most of the elements of the
 | [Bitcoin Core]       | v23.2    | :8333 :8332 (rpc)       | :8333              | No                  | Nothing               |
 | [Electrs Server]     | v0.10.0  | :50001                  | :50001             | :50011              | Bitcoin Core          |
 | [BTC RPC Explorer]   | v3.4.0   | :3002                   | :80                | :3012               | Bitcoin Core, Electrs |
-| [Core Lightning]     | v23.05.2 | :9735                   | :9735              | No                  | Bitcoin Core          |
+| [Core Lightning]     | v23.08.1 | :9735                   | :9735              | No                  | Bitcoin Core          |
 | [c-lightning-REST]   | v0.10.5  | :3001 :4001 (doc)       | :3001 :4001 (doc)  | :3011 :4011 (doc)   | Core Lightning        |
 | [Ride The Lightning] | v0.14.0  | :3000                   | :80                | :3010               | Core Lightning        |
 

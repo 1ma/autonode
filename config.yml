@@ -512,7 +512,7 @@ write_files:
       git verify-tag ${CLN_REST_VERSION}
       npm install
 
-      export CLN_VERSION=v23.05.2
+      export CLN_VERSION=v23.08.1
       export LDFLAGS="-s"
 
       cd ..
