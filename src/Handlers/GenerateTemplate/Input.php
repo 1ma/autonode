@@ -6,14 +6,12 @@ namespace AutoNode\Handlers\GenerateTemplate;
 
 final class Input
 {
+    public bool $x86install;
     public string $admin;
     public string $hostname;
     public string $locale;
     public array $sshKeys;
-    public bool $withTor;
-    public bool $withNginx;
     public bool $withSparrow;
-    public bool $withWireGuard;
     public array $bitcoinCore;
     public array $electrs;
     public array $btcRpcExplorer;
@@ -28,13 +26,13 @@ final class Input
     {
         $input = new self();
 
+        $input->x86install = ($form['x86-install'] ?? '') === 'on';
         $input->admin = $form['admin-username'];
         $input->hostname = $form['hostname'];
         $input->locale = $form['locale'];
-        $input->withTor = ($form['with-tor-services'] ?? '') === 'on';
-        $input->withNginx = ($form['with-nginx'] ?? '') === 'on';
         $input->withSparrow = ($form['with-sparrow'] ?? '') === 'on';
-        $input->withWireGuard = ($form['with-wireguard'] ?? '') === 'on';
+
+        self::parseSSH($input, array_filter($form, fn (string $key): bool => str_starts_with($key, 'ssh-'), \ARRAY_FILTER_USE_KEY));
 
         $input->bitcoinCore = [];
         if ('none' !== $form['bitcoin-core-version']) {
@@ -65,5 +63,24 @@ final class Input
         }
 
         return $input;
+    }
+
+    private static function parseSSH(self $input, array $form): void
+    {
+        $types = array_filter($form, fn (string $key): bool => str_starts_with($key, 'ssh-type-'), \ARRAY_FILTER_USE_KEY);
+        ksort($types);
+
+        $data = array_filter($form, fn (string $key): bool => str_starts_with($key, 'ssh-data-'), \ARRAY_FILTER_USE_KEY);
+        ksort($data);
+
+        $types = array_values($types);
+        $data = array_values($data);
+
+        for ($i = 0; $i < \count($types); ++$i) {
+            $input->sshKeys[] = [
+                'type' => $types[$i],
+                'data' => $data[$i],
+            ];
+        }
     }
 }

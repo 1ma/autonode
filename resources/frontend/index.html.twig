@@ -8,7 +8,7 @@
             <p>
                 <label>
                     x86_64 bare metal installation
-                    <input name="bare-metal" type="checkbox">
+                    <input name="x86-install" type="checkbox">
                 </label>
             </p>
             <p>
@@ -30,19 +30,6 @@
                 </label>
             </p>
             {% include 'ssh_form.html.twig' %}
-            <p>
-                <label>
-                    Set up Tor services
-                    <input name="with-tor-services" type="checkbox" checked>
-                </label>
-            </p>
-            <p>
-                <label>
-                    Set up NGiNX TLS Reverse Proxy
-                    <input name="with-nginx" type="checkbox" checked>
-                </label>
-            </p>
-            {% include 'san_form.html.twig' %}
         </fieldset>
         <fieldset>
             <legend>Bitcoin Core</legend>
@@ -50,7 +37,7 @@
                 <label>
                     Version
                     <select name="bitcoin-core-version">
-                        <option value="v23.1.0">v23.1.0</option>
+                        <option value="v23.2">v23.2</option>
                         <option value="none">None</option>
                     </select>
                 </label>
@@ -63,12 +50,12 @@
             </p>
         </fieldset>
         <fieldset>
-            <legend>Rust Electrum Server</legend>
+            <legend>Electrs Server</legend>
             <p>
                 <label>
                     Version
                     <select name="electrs-version">
-                        <option value="v0.9.11">v0.9.11</option>
+                        <option value="v0.10.0">v0.10.0</option>
                         <option value="none">None</option>
                     </select>
                 </label>
@@ -80,7 +67,7 @@
                 <label>
                     Version
                     <select name="btcexp-version">
-                        <option value="v3.3.0">v3.3.0</option>
+                        <option value="v3.4.0">v3.4.0</option>
                         <option value="none">None</option>
                     </select>
                 </label>
@@ -111,7 +98,7 @@
                     Version
                     <select name="cln-version">
                         <option value="none">None</option>
-                        <option value="v22.11.0">v22.11.0</option>
+                        <option value="v23.05.2">v23.05.2</option>
                     </select>
                 </label>
             </p>
@@ -123,7 +110,7 @@
                     Version
                     <select name="rtl-version">
                         <option value="none">None</option>
-                        <option value="v0.13.4">v0.13.4</option>
+                        <option value="v0.14.0">v0.14.0</option>
                     </select>
                 </label>
             </p>
@@ -134,12 +121,6 @@
                 <label>
                     Sparrow Server
                     <input name="with-sparrow" type="checkbox" checked>
-                </label>
-            </p>
-            <p>
-                <label>
-                    WireGuard
-                    <input name="with-wireguard" type="checkbox">
                 </label>
             </p>
         </fieldset>

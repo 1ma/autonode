@@ -21,15 +21,26 @@ final class GenerateTemplate implements RequestHandlerInterface
         $input = Input::fromForm($request->getParsedBody());
 
         $admin = new SuperUser($input->admin);
-        $admin->addAuthorizedKey('ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKwg+bJZ7RVMbwslBzMlN2+Hfe13fCD8u2IxAZZoHeQ5 root@d2db98313a74');
-        $admin->addImportId('gh', '1ma');
+        foreach ($input->sshKeys as $sshKey) {
+            switch ($sshKey['type']) {
+                case 'pk':
+                    $admin->addAuthorizedKey($sshKey['data']);
+                    break;
+                case 'gh':
+                    $admin->addImportId('gh', $sshKey['data']);
+                    break;
+                case 'lp':
+                    $admin->addImportId('lp', $sshKey['data']);
+                    break;
+            }
+        }
 
-        $template = new CloudInitTemplate($input->hostname, $input->locale, true, $admin);
+        $template = new CloudInitTemplate($input->hostname, $input->locale, $input->x86install, $admin);
         $template->add(new Basics());
 
         return new Response(
             200,
-            ['Content-Type' => 'application/yaml', 'Content-Disposition' => 'attachment; filename="autoinstall.yml"'],
+            ['Content-Type' => 'application/yaml', 'Content-Disposition' => 'attachment; filename="autonode.yml"'],
             "#cloud-config\n\n".Yaml::dump($template->toArray(), 6, 2, Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK)
         );
     }
