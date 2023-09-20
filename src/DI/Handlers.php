@@ -18,7 +18,7 @@ final class Handlers implements ServiceProvider
     {
         $c->set(Environment::class, static function (): Environment {
             return new Environment(
-                new FilesystemLoader(__ROOT__.'/tpl'),
+                new FilesystemLoader(__ROOT__.'/resources/frontend'),
                 [
                     'debug' => true,
                     'strict_variables' => true,

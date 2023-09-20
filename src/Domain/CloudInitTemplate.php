@@ -41,11 +41,7 @@ final class CloudInitTemplate
             '0644',
             true,
             true,
-            <<<TXT
-ControlPort 9051
-CookieAuthentication 1
-CookieAuthFileGroupReadable 1
-TXT
+            file_get_contents(__ROOT__.'/resources/basics/torrc')
         );
         $this->privilegedSetup = new File(
             "/home/{$this->admin->name}/superuser-setup.sh",
@@ -53,18 +49,7 @@ TXT
             '0755',
             true,
             false,
-            <<<BASH
-#!/usr/bin/env bash
-
-set -euo pipefail
-
-# Disable apt news
-sudo pro config set apt_news=false
-
-# Set up firewall
-sudo ufw enable
-sudo ufw allow 22/tcp comment 'allow SSH connections'
-BASH
+            file_get_contents(__ROOT__.'/resources/basics/superuser-setup.sh'),
         );
     }
 

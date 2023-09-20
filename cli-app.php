@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// "composer serve" routing script. Development only.
+
 $path = $_SERVER['DOCUMENT_ROOT'] . $_SERVER['REQUEST_URI'];
 
 if (is_file($path)) {

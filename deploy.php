@@ -22,8 +22,8 @@ task('autonode:build', static function () {
 task('autonode:upload', static function () {
     upload(__DIR__ . '/composer.json', '{{release_path}}');
     upload(__DIR__ . '/composer.lock', '{{release_path}}');
+    upload(__DIR__ . '/resources', '{{release_path}}');
     upload(__DIR__ . '/src', '{{release_path}}');
-    upload(__DIR__ . '/tpl', '{{release_path}}');
     upload(__DIR__ . '/vendor', '{{release_path}}');
     upload(__DIR__ . '/web', '{{release_path}}');
 });

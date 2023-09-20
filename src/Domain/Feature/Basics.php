@@ -44,12 +44,7 @@ final class Basics implements Feature
                 '0644',
                 false,
                 false,
-                <<<TXT
-# https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-22-04
-
-vm.swappiness=5
-vm.vfs_cache_pressure=50
-TXT
+                file_get_contents(__ROOT__.'/resources/basics/99-swap-optimizations.conf'),
             ),
         ];
     }
