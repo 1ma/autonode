@@ -23,17 +23,17 @@ Once you've built at least one node you'll recognize most of the elements of the
 | Service              | Version  | Local Ports (127.0.0.1) | Tor Hidden Service | Nginx TLS (0.0.0.0) | Depends on            |
 |----------------------|----------|-------------------------|--------------------|---------------------|-----------------------|
 | [Bitcoin Core]       | v23.2    | :8333 :8332 (rpc)       | :8333              | No                  | Nothing               |
-| [Electrs Server]     | v0.10.0  | :50001                  | :50001             | :50011              | Bitcoin Core          |
+| [Electrs Server]     | v0.10.2  | :50001                  | :50001             | :50011              | Bitcoin Core          |
 | [BTC RPC Explorer]   | v3.4.0   | :3002                   | :80                | :3012               | Bitcoin Core, Electrs |
-| [Core Lightning]     | v23.08.1 | :9735                   | :9735              | No                  | Bitcoin Core          |
-| [c-lightning-REST]   | v0.10.5  | :3001 :4001 (doc)       | :3001 :4001 (doc)  | :3011 :4011 (doc)   | Core Lightning        |
-| [Ride The Lightning] | v0.14.0  | :3000                   | :80                | :3010               | Core Lightning        |
+| [Core Lightning]     | v23.11.2 | :9735                   | :9735              | No                  | Bitcoin Core          |
+| [c-lightning-REST]   | v0.10.7  | :3001 :4001 (doc)       | :3001 :4001 (doc)  | :3011 :4011 (doc)   | Core Lightning        |
+| [Ride The Lightning] | v0.15.0  | :3000                   | :80                | :3010               | Core Lightning        |
 
 The OpenSSH server is also exposed as a Tor hidden service on port 22.
 
 ### Other Software
 
-* Sparrow Server 1.7.8
+* Sparrow Server 1.8.1
 * WireGuard
 * tmux
 * rust-teos Watchtower plugin for Core Lightning
@@ -88,7 +88,7 @@ When you see the "User Data" form simply copy-paste the YAML template into it. D
 Vagrant is a good option to test your custom modifications to the cloud-init template before using it on
 real hardware, or simply to get familiar with the installation process.
 
-By default Vagrant creates virtual machines with 40GB of disk. Obviously this won't be enough to do a
+By default, Vagrant creates virtual machines with 40GB of disk. Obviously this won't be enough to do a
 full sync, but there's enough leeway to tinker with it, even for hours.
 
 1. After installing Vagrant and VirtualBox, install the Vagrant env plugin: `vagrant plugin install vagrant-env`

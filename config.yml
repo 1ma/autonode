@@ -44,13 +44,13 @@ users:
 apt:
   sources:
     nginx:
-      source: "deb https://nginx.org/packages/mainline/ubuntu jammy nginx"
+      source: "deb https://nginx.org/packages/mainline/ubuntu noble nginx"
       keyid: 573B FD6B 3D8F BC64 1079 A6AB ABF5 BD82 7BD9 BF62
     nodesource:
-      source: "deb https://deb.nodesource.com/node_20.x jammy main"
+      source: "deb https://deb.nodesource.com/node_20.x noble main"
       keyid: 9FD3 B784 BC1C 6FC3 1A8A 0A1C 1655 A0AB 6857 6280
     tor:
-      source: "deb https://deb.torproject.org/torproject.org jammy main"
+      source: "deb https://deb.torproject.org/torproject.org noble main"
       keyid: A3C4 F0F9 79CA A22C DBA8 F512 EE8C BC9E 886D DD89
     i2pd:
       source: "ppa:purplei2p/i2pd"
@@ -65,21 +65,25 @@ packages:
   - build-essential
   - clang
   - cmake
+  - curl
+  - deb.torproject.org-keyring
   - fail2ban
   - gettext
   - git
   - i2pd
   - libgmp-dev
   - libsodium-dev
+  - libsqlite3-dev
   - libssl-dev
   - libtool
   - net-tools
-  - nginx
+  - nginx-full
   - nodejs
+  - npm
   - pkg-config
   - protobuf-compiler
   - python3-dev
-  - python3-pip
+  - python3-mako
   - qrencode
   - tmux
   - tor
@@ -151,12 +155,12 @@ write_files:
 
       mkdir data
 
-      wget -q https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS
-      wget -q https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS.asc
-      wget -q https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/bitcoin-${BITCOIN_VERSION}.tar.gz
+      curl -OL https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS
+      curl -OL https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS.asc
+      curl -OL https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/bitcoin-${BITCOIN_VERSION}.tar.gz
 
       # TODO that's trashy, rethink approach
-      wget -O- https://raw.githubusercontent.com/1ma/dockertronics/master/bitcoin/developer_pubkeys.pem | gpg --import -
+      curl https://raw.githubusercontent.com/1ma/dockertronics/master/bitcoin/developer_pubkeys.pem | gpg --import -
 
       gpg --verify SHA256SUMS.asc SHA256SUMS
       sha256sum --ignore-missing -c SHA256SUMS
@@ -185,7 +189,7 @@ write_files:
         --with-qrencode=no \
         --with-utils=yes
 
-      wget https://gist.githubusercontent.com/luke-jr/4c022839584020444915c84bdd825831/raw/555c8a1e1e0143571ad4ff394221573ee37d9a56/filter-ordinals.patch
+      curl -OL https://gist.githubusercontent.com/luke-jr/4c022839584020444915c84bdd825831/raw/555c8a1e1e0143571ad4ff394221573ee37d9a56/filter-ordinals.patch
       git apply filter-ordinals.patch
 
       make -j$(nproc)
@@ -331,15 +335,15 @@ write_files:
 
       set -euo pipefail
 
-      export ELECTRS_VERSION=v0.10.0
+      export ELECTRS_VERSION=v0.10.2
 
       git clone https://github.com/romanz/electrs.git code
 
       cd code
-      wget -q -O- https://sh.rustup.rs | sh -s -- -y --default-toolchain $(cat rust-toolchain)
+      curl https://sh.rustup.rs | sh -s -- -y --default-toolchain none
       source "$HOME/.cargo/env"
 
-      wget -q -O- https://romanzey.de/pgp.txt | gpg --import -
+      curl https://romanzey.de/pgp.txt | gpg --import -
       git checkout ${ELECTRS_VERSION}
       git verify-tag ${ELECTRS_VERSION}
 
@@ -437,7 +441,7 @@ write_files:
 
       export BTCEXP_VERSION=v3.4.0
 
-      wget -O- https://github.com/janoside.gpg | gpg --import -
+      curl https://github.com/janoside.gpg | gpg --import -
 
       git clone https://github.com/janoside/btc-rpc-explorer.git code
       cd code
@@ -495,14 +499,10 @@ write_files:
       mkdir .bitcoin
       echo "datadir=/home/bitcoin/data" > .bitcoin/bitcoin.conf
 
-      wget -q -O- https://sh.rustup.rs | sh -s -- -y
-      pip3 install mako
-      source .profile
+      export CLN_REST_VERSION=v0.10.7
 
-      export CLN_REST_VERSION=v0.10.5
-
-      wget -q -O- https://keybase.io/suheb/pgp_keys.asc | gpg --import -
-      wget -O- https://raw.githubusercontent.com/1ma/dockertronics/master/core-lightning/developer_pubkeys.pem | gpg --import -
+      curl https://keybase.io/suheb/pgp_keys.asc | gpg --import -
+      curl https://raw.githubusercontent.com/1ma/dockertronics/master/core-lightning/developer_pubkeys.pem | gpg --import -
 
       mkdir code
       cd code
@@ -512,7 +512,7 @@ write_files:
       git verify-tag ${CLN_REST_VERSION}
       npm install
 
-      export CLN_VERSION=v23.08.1
+      export CLN_VERSION=v23.11.2
       export LDFLAGS="-s"
 
       cd ..
@@ -523,12 +523,15 @@ write_files:
       git verify-tag ${CLN_VERSION}
 
       ./configure \
-        --enable-experimental-features \
+        --disable-rust \
         --enable-static
 
       make -j$(nproc)
 
-      export TEOS_COMMIT=1a89c5da70278ac5019a3bbb505b1923648a43da
+      export TEOS_COMMIT=a4accedfeecf46edb9c22738ac9787b80dc8af02
+
+      curl https://sh.rustup.rs | sh -s -- -y
+      source "$HOME/.cargo/env"
 
       cd ..
       git clone https://github.com/talaia-labs/rust-teos
@@ -697,9 +700,9 @@ write_files:
 
       set -euo pipefail
 
-      export RTL_VERSION=v0.14.0
+      export RTL_VERSION=v0.15.0
 
-      wget -q -O- https://keybase.io/suheb/pgp_keys.asc | gpg --import -
+      curl https://keybase.io/suheb/pgp_keys.asc | gpg --import -
       git clone https://github.com/Ride-The-Lightning/RTL.git code
       cd code
       git checkout ${RTL_VERSION}
@@ -769,12 +772,14 @@ write_files:
       sudo systemctl enable rtl.service
       sudo systemctl enable i2pd.service
 
+      export ARCH=$(dpkg --print-architecture)
+
       # Install Sparrow Server
-      wget -q -O- https://keybase.io/craigraw/pgp_keys.asc | gpg --import
-      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.8/sparrow-server_1.7.8-1_amd64.deb
-      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.8/sparrow-1.7.8-manifest.txt
-      wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.8/sparrow-1.7.8-manifest.txt.asc
-      gpg --verify sparrow-1.7.8-manifest.txt.asc sparrow-1.7.8-manifest.txt
-      sha256sum --ignore-missing --check sparrow-1.7.8-manifest.txt
-      sudo dpkg -i sparrow-server_1.7.8-1_amd64.deb
+      curl https://keybase.io/craigraw/pgp_keys.asc | gpg --import
+      curl -OL https://github.com/sparrowwallet/sparrow/releases/download/1.8.1/sparrow-server_1.8.1-1_${ARCH}.deb
+      curl -OL https://github.com/sparrowwallet/sparrow/releases/download/1.8.1/sparrow-1.8.1-manifest.txt
+      curl -OL https://github.com/sparrowwallet/sparrow/releases/download/1.8.1/sparrow-1.8.1-manifest.txt.asc
+      gpg --verify sparrow-1.8.1-manifest.txt.asc sparrow-1.8.1-manifest.txt
+      sha256sum --ignore-missing --check sparrow-1.8.1-manifest.txt
+      sudo dpkg -i sparrow-server_1.8.1-1_${ARCH}.deb
       sudo ln -s /opt/sparrow/bin/Sparrow /usr/local/bin/Sparrow
