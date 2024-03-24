@@ -7,6 +7,8 @@ Vagrant.configure("2") do |config|
   # Reads .env file from the current directory
   config.env.enable
 
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
   config.vm.provider "virtualbox" do |vb|
     vb.cpus = 12
     vb.memory = 16384
@@ -17,7 +19,6 @@ Vagrant.configure("2") do |config|
     cloud_init.path = "./config.yml"
   end
 
-  config.vm.network "forwarded_port", guest: 3010, host: 3010
-  config.vm.network "forwarded_port", guest: 3012, host: 3012
-  config.vm.network "forwarded_port", guest: 50011, host: 50011
+  config.vm.hostname = "autonode.local"
+  config.vm.network "private_network", ip: "192.168.56.11"
 end
