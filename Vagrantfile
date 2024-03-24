@@ -2,7 +2,7 @@
 # vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "ubuntu/noble64"
+  config.vm.box = "ubuntu/jammy64"
 
   # Reads .env file from the current directory
   config.env.enable
@@ -20,5 +20,5 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.hostname = "autonode.local"
-  config.vm.network "private_network", ip: "192.168.56.11"
+  config.vm.network "public_network"
 end

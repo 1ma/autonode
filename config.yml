@@ -23,19 +23,9 @@ users:
     groups: bitcoin
     shell: /bin/bash
 
-  - name: cln
-    gecos: Core Lightning system user
-    groups: bitcoin
-    shell: /bin/bash
-
-  - name: rtl
-    gecos: Ride The Lightning system user
-    groups: cln
-    shell: /bin/bash
-
   - name: satoshi
     gecos: Node operator account
-    groups: adm, bitcoin, cdrom, cln, dip, lxd, plugdev, sudo
+    groups: adm, bitcoin, cdrom, dip, lxd, plugdev, sudo
     shell: /bin/bash
     ssh_import_id:
       - gh:1ma
@@ -44,13 +34,13 @@ users:
 apt:
   sources:
     nginx:
-      source: "deb https://nginx.org/packages/mainline/ubuntu noble nginx"
+      source: "deb https://nginx.org/packages/mainline/ubuntu jammy nginx"
       keyid: 573B FD6B 3D8F BC64 1079 A6AB ABF5 BD82 7BD9 BF62
     nodesource:
-      source: "deb https://deb.nodesource.com/node_20.x noble main"
+      source: "deb https://deb.nodesource.com/node_20.x jammy main"
       keyid: 9FD3 B784 BC1C 6FC3 1A8A 0A1C 1655 A0AB 6857 6280
     tor:
-      source: "deb https://deb.torproject.org/torproject.org noble main"
+      source: "deb https://deb.torproject.org/torproject.org jammy main"
       keyid: A3C4 F0F9 79CA A22C DBA8 F512 EE8C BC9E 886D DD89
     i2pd:
       source: "ppa:purplei2p/i2pd"
@@ -63,41 +53,29 @@ packages:
   - autoconf
   - automake
   - build-essential
+  - ca-certificates
   - clang
-  - cmake
   - curl
   - deb.torproject.org-keyring
   - fail2ban
-  - gettext
   - git
   - i2pd
-  - libgmp-dev
-  - libsodium-dev
-  - libsqlite3-dev
-  - libssl-dev
   - libtool
   - net-tools
-  - nginx-full
+  - nginx
   - nodejs
-  - npm
   - pkg-config
-  - protobuf-compiler
-  - python3-dev
-  - python3-mako
   - qrencode
   - tmux
   - tor
   - tree
   - ufw
   - wireguard
-  - zlib1g-dev
 
 runcmd:
   - su -c "bash -x /home/bitcoin/bitcoin-setup.sh" - bitcoin
   - su -c "bash -x /home/electrs/electrs-setup.sh" - electrs
   - su -c "bash -x /home/btcexp/btcexp-setup.sh" - btcexp
-  - su -c "bash -x /home/cln/cln-setup.sh" - cln
-  - su -c "bash -x /home/rtl/rtl-setup.sh" - rtl
   - su -c "bash -x /home/satoshi/superuser-setup.sh" - satoshi
 
 power_state:
@@ -129,16 +107,7 @@ write_files:
       HiddenServicePort 50001 127.0.0.1:50001
 
       HiddenServiceDir /var/lib/tor/btcexp/
-      HiddenServicePort 80 127.0.0.1:3002
-
-      HiddenServiceDir /var/lib/tor/cln-rest/
-      HiddenServicePort 3001 127.0.0.1:3001
-
-      HiddenServiceDir /var/lib/tor/cln-rest-doc/
-      HiddenServicePort 4001 127.0.0.1:4001
-
-      HiddenServiceDir /var/lib/tor/rtl/
-      HiddenServicePort 3000 127.0.0.1:3000
+      HiddenServicePort 3002 127.0.0.1:3002
   - path: /home/bitcoin/bitcoin-setup.sh
     owner: bitcoin:bitcoin
     defer: true
@@ -323,8 +292,20 @@ write_files:
       }
 
       server {
-        listen 50011 ssl;
+        listen 50002 ssl;
         proxy_pass electrs;
+      }
+  - path: /etc/nginx/sites-enabled/btcexp-reverse-proxy.conf
+    owner: root:root
+    defer: true
+    permissions: '0644'
+    content: |
+      server {
+        listen 3003 ssl;
+        error_page 497 =301 https://$host:$server_port$request_uri;
+        location / {
+          proxy_pass http://127.0.0.1:3002;
+        }
       }
   - path: /home/electrs/electrs-setup.sh
     owner: electrs:electrs
@@ -335,21 +316,22 @@ write_files:
 
       set -euo pipefail
 
-      export ELECTRS_VERSION=v0.10.2
+      export ELECTRS_VERSION=v0.10.4
+
+      curl https://romanzey.de/pgp.txt | gpg --import -
+
+      curl https://sh.rustup.rs | sh -s -- -y --default-toolchain none
+      source "$HOME/.cargo/env"
 
       git clone https://github.com/romanz/electrs.git code
 
       cd code
-      curl https://sh.rustup.rs | sh -s -- -y --default-toolchain none
-      source "$HOME/.cargo/env"
-
-      curl https://romanzey.de/pgp.txt | gpg --import -
       git checkout ${ELECTRS_VERSION}
       git verify-tag ${ELECTRS_VERSION}
 
       cargo build --locked --release
 
-      cd ..
+      cd ~
       mkdir data
   - path: /home/electrs/electrs.conf
     owner: electrs:electrs
@@ -398,38 +380,7 @@ write_files:
 
       [Install]
       WantedBy=multi-user.target
-  - path: /etc/nginx/sites-enabled/btcexp-reverse-proxy.conf
-    owner: root:root
-    defer: true
-    permissions: '0644'
-    content: |
-      server {
-        listen 3012 ssl;
-        error_page 497 =301 https://$host:$server_port$request_uri;
-        location / {
-          proxy_pass http://127.0.0.1:3002;
-        }
-      }
-  - path: /etc/nginx/sites-enabled/cln-rest-reverse-proxy.conf
-    owner: root:root
-    defer: true
-    permissions: '0644'
-    content: |
-      server {
-        listen 3011 ssl;
-        error_page 497 =301 https://$host:$server_port$request_uri;
-        location / {
-          proxy_pass http://127.0.0.1:3001;
-        }
-      }
 
-      server {
-        listen 4011 ssl;
-        error_page 497 =301 https://$host:$server_port$request_uri;
-        location / {
-          proxy_pass http://127.0.0.1:4001;
-        }
-      }
   - path: /home/btcexp/btcexp-setup.sh
     owner: btcexp:btcexp
     defer: true
@@ -487,228 +438,6 @@ write_files:
 
       [Install]
       WantedBy=multi-user.target
-  - path: /home/cln/cln-setup.sh
-    owner: cln:cln
-    defer: true
-    permissions: '0755'
-    content: |
-      #!/usr/bin/env bash
-
-      set -euo pipefail
-
-      mkdir .bitcoin
-      echo "datadir=/home/bitcoin/data" > .bitcoin/bitcoin.conf
-
-      export CLN_REST_VERSION=v0.10.7
-
-      curl https://keybase.io/suheb/pgp_keys.asc | gpg --import -
-      curl https://raw.githubusercontent.com/1ma/dockertronics/master/core-lightning/developer_pubkeys.pem | gpg --import -
-
-      mkdir code
-      cd code
-      git clone https://github.com/Ride-The-Lightning/c-lightning-REST
-      cd c-lightning-REST
-      git checkout ${CLN_REST_VERSION}
-      git verify-tag ${CLN_REST_VERSION}
-      npm install
-
-      export CLN_VERSION=v23.11.2
-      export LDFLAGS="-s"
-
-      cd ..
-      git clone https://github.com/ElementsProject/lightning
-
-      cd lightning
-      git checkout ${CLN_VERSION}
-      git verify-tag ${CLN_VERSION}
-
-      ./configure \
-        --disable-rust \
-        --enable-static
-
-      make -j$(nproc)
-
-      export TEOS_COMMIT=a4accedfeecf46edb9c22738ac9787b80dc8af02
-
-      curl https://sh.rustup.rs | sh -s -- -y
-      source "$HOME/.cargo/env"
-
-      cd ..
-      git clone https://github.com/talaia-labs/rust-teos
-      cd rust-teos
-      git checkout ${TEOS_COMMIT}
-      cargo install --path watchtower-plugin
-
-      cd $HOME
-      mkdir -p .lightning/bitcoin .lightning/plugins
-      chmod 750 .lightning .lightning/bitcoin .lightning/plugins
-
-      # Install CLN plugins
-      mv /home/cln/code/rust-teos/target/release/watchtower-client /home/cln/.lightning/plugins
-      ln -s /home/cln/code/c-lightning-REST/clrest.js /home/cln/.lightning/plugins/
-  - path: /home/cln/config.txt
-    owner: cln:cln
-    defer: true
-    permissions: '0640'
-    content: |
-      alias=autonode
-      rgb=009900
-
-      network=bitcoin
-      log-level=info
-
-      rpc-file-mode=0660
-
-      # default fees and channel min size
-      fee-base=0
-      fee-per-satoshi=0
-      min-capacity-sat=1000000
-
-      ## optional
-      # wumbo channels
-      large-channels
-      # channel confirmations needed
-      funding-confirms=2
-      # autoclean (86400=daily)
-      autocleaninvoice-cycle=86400
-      autocleaninvoice-expired-by=86400
-
-      wallet=sqlite3:///home/cln/lightning.sqlite3
-
-      # network
-      proxy=127.0.0.1:9050
-      bind-addr=127.0.0.1:9735
-      addr=statictor:127.0.0.1:9051/torport=9735
-      always-use-proxy=true
-
-      plugin-dir=/home/cln/.lightning/plugins
-
-      # c-lightning-REST options
-      rest-port=3001
-      rest-docport=4001
-      rest-protocol=http
-      rest-bind=127.0.0.1
-  - path: /etc/systemd/system/cln.service
-    owner: root:root
-    permissions: '0644'
-    content: |
-      [Unit]
-      Description=Core Lightning
-      Requires=bitcoin.service
-      After=bitcoin.service
-      Wants=network-online.target
-      After=network-online.target
-
-      [Service]
-      ExecStart=/bin/sh -c 'lightningd --conf=/home/cln/config.txt'
-
-      ExecStop=/bin/sh -c 'lightning-cli stop'
-
-      RuntimeDirectory=lightningd
-
-      User=cln
-      Group=cln
-
-      Type=exec
-      PIDFile=/home/cln/.lightning/lightningd-bitcoin.pid
-      Restart=on-failure
-      TimeoutSec=240
-      RestartSec=30
-
-      # hardening measures
-      PrivateTmp=true
-      ProtectSystem=full
-      NoNewPrivileges=true
-      PrivateDevices=true
-
-      [Install]
-      WantedBy=multi-user.target
-  - path: /etc/systemd/system/rtl.service
-    owner: root:root
-    permissions: '0644'
-    content: |
-      [Unit]
-      Description=Ride The Lightning
-      After=network.target cln.service
-
-      [Service]
-      Type=exec
-      WorkingDirectory=/home/rtl/code
-      ExecStart=node rtl.js
-
-      User=rtl
-      Group=rtl
-
-      Restart=always
-      RestartSec=30
-
-      [Install]
-      WantedBy=multi-user.target
-  - path: /etc/nginx/sites-enabled/rtl-reverse-proxy.conf
-    owner: root:root
-    defer: true
-    permissions: '0644'
-    content: |
-      server {
-        listen 3010 ssl;
-        error_page 497 =301 https://$host:$server_port$request_uri;
-        location / {
-          proxy_pass http://127.0.0.1:3000;
-        }
-      }
-  - path: /home/rtl/RTL-Config.json
-    owner: rtl:rtl
-    defer: true
-    permissions: '0640'
-    content: |
-      {
-        "multiPass": "rtl",
-        "port": "3000",
-        "defaultNodeIndex": 1,
-        "SSO": {
-          "rtlSSO": 0,
-          "rtlCookiePath": "",
-          "logoutRedirectLink": ""
-        },
-        "nodes": [
-          {
-            "index": 1,
-            "lnNode": "node01",
-            "lnImplementation": "CLN",
-            "Authentication": {
-              "macaroonPath": "/home/cln/code/c-lightning-REST/certs",
-              "configPath": "/home/cln/config.txt"
-            },
-            "Settings": {
-              "userPersona": "OPERATOR",
-              "themeMode": "NIGHT",
-              "themeColor": "INDIGO",
-              "channelBackupPath": "",
-              "logLevel": "ERROR",
-              "lnServerUrl": "http://localhost:3001",
-              "fiatConversion": false
-            }
-          }
-        ]
-      }
-  - path: /home/rtl/rtl-setup.sh
-    owner: rtl:rtl
-    defer: true
-    permissions: '0755'
-    content: |
-      #!/usr/bin/env bash
-
-      set -euo pipefail
-
-      export RTL_VERSION=v0.15.0
-
-      curl https://keybase.io/suheb/pgp_keys.asc | gpg --import -
-      git clone https://github.com/Ride-The-Lightning/RTL.git code
-      cd code
-      git checkout ${RTL_VERSION}
-      git verify-tag ${RTL_VERSION}
-      npm install --omit=dev --legacy-peer-deps
-      mv ../RTL-Config.json .
   - path: /home/satoshi/superuser-setup.sh
     owner: satoshi:satoshi
     defer: true
@@ -725,20 +454,14 @@ write_files:
       mkdir .bitcoin
       echo "datadir=/home/bitcoin/data" > .bitcoin/bitcoin.conf
 
-      ln -s /home/cln/.lightning .lightning
-
-      # Add bitcoin and cln users to the debian-tor group
+      # Add bitcoin user to the debian-tor group
       sudo usermod -aG debian-tor bitcoin
-      sudo usermod -aG debian-tor cln
 
       # Install bitcoin binaries in /usr/local/bin
       sudo make -C /home/bitcoin/code install
 
       # Install electrs binary
       sudo install -m 0755 -o root -g root -t /usr/local/bin /home/electrs/code/target/release/electrs
-
-      # Install Core Lightning binaries in /usr/local/bin
-      sudo make -C /home/cln/code/lightning install
 
       # Create self-signed certificate for HTTPS sites and test nginx configuration
       sudo openssl req \
@@ -757,9 +480,8 @@ write_files:
       sudo ufw default deny incoming
       sudo ufw default allow outgoing
       sudo ufw allow 22/tcp comment 'allow SSH connections'
-      sudo ufw allow 3010/tcp comment 'allow RTL SSL'
-      sudo ufw allow 3012/tcp comment 'allow BTC RPC Explorer SSL'
-      sudo ufw allow 50011/tcp comment 'allow Electrum SSL'
+      sudo ufw allow 3003/tcp comment 'allow BTC RPC Explorer SSL'
+      sudo ufw allow 50002/tcp comment 'allow Electrum SSL'
       sudo ufw allow 51820/udp comment 'allow WireGuard traffic'
       sudo ufw logging off
       sudo ufw enable
@@ -768,18 +490,17 @@ write_files:
       sudo systemctl enable bitcoin.service
       sudo systemctl enable btcexp.service
       sudo systemctl enable electrs.service
-      # sudo systemctl enable cln.service
-      sudo systemctl enable rtl.service
       sudo systemctl enable i2pd.service
 
+      export SPARROW_VERSION=1.8.4
       export ARCH=$(dpkg --print-architecture)
 
       # Install Sparrow Server
       curl https://keybase.io/craigraw/pgp_keys.asc | gpg --import
-      curl -OL https://github.com/sparrowwallet/sparrow/releases/download/1.8.1/sparrow-server_1.8.1-1_${ARCH}.deb
-      curl -OL https://github.com/sparrowwallet/sparrow/releases/download/1.8.1/sparrow-1.8.1-manifest.txt
-      curl -OL https://github.com/sparrowwallet/sparrow/releases/download/1.8.1/sparrow-1.8.1-manifest.txt.asc
-      gpg --verify sparrow-1.8.1-manifest.txt.asc sparrow-1.8.1-manifest.txt
-      sha256sum --ignore-missing --check sparrow-1.8.1-manifest.txt
-      sudo dpkg -i sparrow-server_1.8.1-1_${ARCH}.deb
+      curl -OL https://github.com/sparrowwallet/sparrow/releases/download/${SPARROW_VERSION}/sparrow-server_${SPARROW_VERSION}-1_${ARCH}.deb
+      curl -OL https://github.com/sparrowwallet/sparrow/releases/download/${SPARROW_VERSION}/sparrow-${SPARROW_VERSION}-manifest.txt
+      curl -OL https://github.com/sparrowwallet/sparrow/releases/download/${SPARROW_VERSION}/sparrow-${SPARROW_VERSION}-manifest.txt.asc
+      gpg --verify sparrow-${SPARROW_VERSION}-manifest.txt.asc sparrow-${SPARROW_VERSION}-manifest.txt
+      sha256sum --ignore-missing --check sparrow-${SPARROW_VERSION}-manifest.txt
+      sudo dpkg -i sparrow-server_${SPARROW_VERSION}-1_${ARCH}.deb
       sudo ln -s /opt/sparrow/bin/Sparrow /usr/local/bin/Sparrow
