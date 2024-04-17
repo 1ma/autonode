@@ -8,31 +8,26 @@ jobs:
   ci:
     name: Continuous Integration
     runs-on: ubuntu-latest
-    container: 1maa/php-dev:8.3
     steps:
-      - name: Checkout project
-        uses: actions/checkout@v4
-      - name: Install PHP dependencies for testing
-        run: |
-          composer install
-      - name: Ensure code is well formatted
-        run: |
-          php vendor/bin/php-cs-fixer fix --dry-run -v
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+      - run: composer install
+      - run: php vendor/bin/php-cs-fixer check --show-progress dots
   cd:
     name: Continuous Deployment
     runs-on: ubuntu-latest
-    container: 1maa/php-dev:8.3
     if: ${{ github.ref == 'refs/heads/master' }}
     needs:
       - ci
     steps:
-      - name: Checkout project
-        uses: actions/checkout@v4
-      - name: Install OS dependencies for deployment
-        run: |
-          apk add bash openssh-client rsync
-      - name: Deploy AutoNode
-        run: |
-          eval $(ssh-agent -s)
-          echo "${{secrets.SSH_PRIVATE_KEY}}" | ssh-add -
-          dep autonode:deploy -vv
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+      - uses: deployphp/action@v1
+        with:
+          dep: autonode:deploy
+          private-key: ${{secrets.SSH_PRIVATE_KEY}}
+          verbosity: -vv
