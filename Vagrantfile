@@ -4,9 +4,6 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/jammy64"
 
-  # Reads .env file from the current directory
-  config.env.enable
-
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
   config.vm.provider "virtualbox" do |vb|
