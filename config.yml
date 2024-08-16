@@ -60,6 +60,7 @@ packages:
   - fail2ban
   - git
   - i2pd
+  - jq
   - libtool
   - net-tools
   - nginx
@@ -128,8 +129,7 @@ write_files:
       curl -OL https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS.asc
       curl -OL https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/bitcoin-${BITCOIN_VERSION}.tar.gz
 
-      # TODO that's trashy, rethink approach
-      curl https://raw.githubusercontent.com/1ma/dockertronics/master/bitcoin/developer_pubkeys.pem | gpg --import -
+      curl -s https://api.github.com/repos/bitcoin-core/guix.sigs/contents/builder-keys | jq -r '.[].download_url' | while read url; do curl -s "$url" | gpg --import; done
 
       gpg --verify SHA256SUMS.asc SHA256SUMS
       sha256sum --ignore-missing -c SHA256SUMS
