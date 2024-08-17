@@ -1,0 +1,121 @@
+#cloud-config
+
+hostname: autonode
+
+locale: en_US.UTF-8
+
+apt:
+  sources:
+    nginx:
+      source: "deb https://nginx.org/packages/mainline/ubuntu jammy nginx"
+      keyid: 573B FD6B 3D8F BC64 1079 A6AB ABF5 BD82 7BD9 BF62
+    nodejs:
+      source: "deb https://deb.nodesource.com/node_20.x jammy main"
+      keyid: 9FD3 B784 BC1C 6FC3 1A8A 0A1C 1655 A0AB 6857 6280
+    tor:
+      source: "deb https://deb.torproject.org/torproject.org jammy main"
+      keyid: A3C4 F0F9 79CA A22C DBA8 F512 EE8C BC9E 886D DD89
+    i2pd:
+      source: "ppa:purplei2p/i2pd"
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - bash-completion
+  - curl
+  - deb.torproject.org-keyring
+  - git
+  - gnupg
+  - htop
+  - i2pd
+  - jq
+  - man-db
+  - mariadb-client
+  - mariadb-server
+  - nginx
+  - nodejs
+  - python-is-python3
+  - tor
+  - tree
+
+runcmd:
+  - bash -x /var/autonode/knots/setup.sh
+  - bash -x /var/autonode/fulcrum/setup.sh
+
+power_state:
+  mode: reboot
+
+write_files:
+  - path: /etc/tor/torrc
+    owner: root:root
+    defer: true
+    append: true
+    permissions: '0644'
+    content: |
+      ControlPort 9051
+      CookieAuthentication 1
+      CookieAuthFileGroupReadable 1
+  - path: /var/autonode/knots/setup.sh
+    owner: root:root
+    defer: true
+    permissions: '0755'
+    content: |
+      #!/usr/bin/env bash
+
+      set -euo pipefail
+
+      export KNOTS_VERSION=27.1.knots20240801
+      export KNOTS_MAJOR_VERSION=$(echo ${KNOTS_VERSION} | cut -c1-2)
+
+      # TODO Download release and verify signatures instead of downloading directly from GitHub
+      curl -s -o /etc/bash_completion.d/bitcoin-cli.bash https://raw.githubusercontent.com/bitcoinknots/bitcoin/v${KNOTS_VERSION}/contrib/completions/bash/bitcoin-cli.bash
+      curl -s -o /etc/bash_completion.d/bitcoin-tx.bash https://raw.githubusercontent.com/bitcoinknots/bitcoin/v${KNOTS_VERSION}/contrib/completions/bash/bitcoin-tx.bash
+      curl -s -o /etc/bash_completion.d/bitcoind.bash https://raw.githubusercontent.com/bitcoinknots/bitcoin/v${KNOTS_VERSION}/contrib/completions/bash/bitcoind.bash
+
+      curl -s https://api.github.com/repos/bitcoinknots/guix.sigs/contents/builder-keys | jq -r '.[].download_url' | while read url; do curl -s "$url" | gpg --import; done
+
+      cd /var/autonode/knots
+      curl -LO https://bitcoinknots.org/files/${KNOTS_MAJOR_VERSION}.x/${KNOTS_VERSION}/SHA256SUMS
+      curl -LO https://bitcoinknots.org/files/${KNOTS_MAJOR_VERSION}.x/${KNOTS_VERSION}/SHA256SUMS.asc
+      curl -LO https://bitcoinknots.org/files/${KNOTS_MAJOR_VERSION}.x/${KNOTS_VERSION}/bitcoin-${KNOTS_VERSION}-x86_64-linux-gnu.tar.gz
+      gpg --verify SHA256SUMS.asc SHA256SUMS
+      sha256sum -c --ignore-missing SHA256SUMS
+
+      tar zxf bitcoin-${KNOTS_VERSION}-x86_64-linux-gnu.tar.gz
+      tree
+
+      cp -r bitcoin-${KNOTS_VERSION}/bin/bitcoin*          /usr/local/bin/
+      cp -r bitcoin-${KNOTS_VERSION}/share/man/man1        /usr/local/share/man/
+      cp bitcoin-${KNOTS_VERSION}/share/rpcauth/rpcauth.py /usr/local/bin/
+
+      groupadd -r bitcoin
+      useradd -s /usr/sbin/nologin -r -g bitcoin bitcoin
+  - path: /var/autonode/fulcrum/setup.sh
+    owner: root:root
+    defer: true
+    permissions: '0755'
+    content: |
+      #!/usr/bin/env bash
+
+      set -euo pipefail
+
+      export FULCRUM_VERSION=1.11.0
+
+      curl -s https://raw.githubusercontent.com/Electron-Cash/keys-n-hashes/master/pubkeys/calinkey.txt | gpg --import
+
+      cd /var/autonode/fulcrum
+      curl -LO https://github.com/cculianu/Fulcrum/releases/download/v${FULCRUM_VERSION}/Fulcrum-${FULCRUM_VERSION}-shasums.txt
+      curl -LO https://github.com/cculianu/Fulcrum/releases/download/v${FULCRUM_VERSION}/Fulcrum-${FULCRUM_VERSION}-shasums.txt.asc
+      curl -LO https://github.com/cculianu/Fulcrum/releases/download/v${FULCRUM_VERSION}/Fulcrum-${FULCRUM_VERSION}-x86_64-linux.tar.gz
+      gpg --verify Fulcrum-${FULCRUM_VERSION}-shasums.txt.asc Fulcrum-${FULCRUM_VERSION}-shasums.txt
+      sha256sum -c --ignore-missing Fulcrum-${FULCRUM_VERSION}-shasums.txt
+
+      tar zxf Fulcrum-${FULCRUM_VERSION}-x86_64-linux.tar.gz
+      tree
+
+      cp -r Fulcrum-${FULCRUM_VERSION}-x86_64-linux/Fulcrum* /usr/local/bin/
+      cp -r Fulcrum-${FULCRUM_VERSION}-x86_64-linux/man/*    /usr/local/share/man/man1/
+
+      groupadd -r fulcrum
+      useradd -s /usr/sbin/nologin -r -g fulcrum fulcrum
