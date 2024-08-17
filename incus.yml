@@ -15,8 +15,6 @@ apt:
     tor:
       source: "deb https://deb.torproject.org/torproject.org jammy main"
       keyid: A3C4 F0F9 79CA A22C DBA8 F512 EE8C BC9E 886D DD89
-    i2pd:
-      source: "ppa:purplei2p/i2pd"
 
 package_update: true
 package_upgrade: true
@@ -29,12 +27,12 @@ packages:
   - git
   - gnupg
   - htop
-  - i2pd
   - jq
   - man-db
   - mariadb-client
   - mariadb-server
   - nano
+  - net-tools
   - nginx
   - nodejs
   - python-is-python3
@@ -91,8 +89,103 @@ write_files:
       install -m 0755 -o root -g root -t /usr/local/bin bitcoin-${KNOTS_VERSION}/share/rpcauth/rpcauth.py
       cp -r bitcoin-${KNOTS_VERSION}/share/man/man1 /usr/local/share/man/
 
+      install -m 0644 -o root -g root -t /etc/systemd/system bitcoind.service
+
       groupadd -r bitcoin
-      useradd -s /usr/sbin/nologin -r -g bitcoin bitcoin
+      useradd -s /usr/sbin/nologin -r -G debian-tor -g bitcoin bitcoin
+
+      mkdir -m 710 /var/lib/bitcoind
+      chown bitcoin:bitcoin /var/lib/bitcoind
+
+      mkdir -m 710 /etc/bitcoin
+      chown bitcoin:bitcoin /etc/bitcoin
+      install -m 0640 -o bitcoin -g bitcoin -t /etc/bitcoin bitcoin.conf
+
+      systemctl enable bitcoind.service
+  - path: /var/autonode/knots/bitcoin.conf
+    owner: root:root
+    defer: true
+    permissions: '0644'
+    content: |
+      # initial block download settings (disable after IBD)
+      blocksonly=1
+
+      # network settings
+      listen=1
+      onlynet=ipv4
+      onlynet=onion
+      proxy=127.0.0.1:9050
+      server=1
+      whitelist=127.0.0.1
+
+      # auth settings
+      rpccookieperms=group
+
+      # misc settings
+      assumevalid=0
+      datadir=/var/lib/bitcoind
+      nodebuglogfile=1
+      pid=/run/bitcoind/bitcoind.pid
+      walletimplicitsegwit=1
+
+      # bloom filters
+      peerblockfilters=1
+      peerbloomfilters=1
+
+      # indexes
+      blockfilterindex=basic
+      coinstatsindex=1
+      txindex=1
+
+      # ZMQ
+      zmqpubhashblock=tcp://127.0.0.1:8433
+  - path: /var/autonode/knots/bitcoind.service
+    owner: root:root
+    defer: true
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Bitcoin Knots daemon
+      Documentation=https://github.com/bitcoinknots/bitcoin/blob/27.x-knots/doc/init.md
+
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      ExecStart=/usr/local/bin/bitcoind -conf=/etc/bitcoin/bitcoin.conf \
+                                        -startupnotify='systemd-notify --ready' \
+                                        -shutdownnotify='systemd-notify --stopping'
+
+      Type=notify
+      NotifyAccess=all
+      PIDFile=/run/bitcoind/bitcoind.pid
+
+      Restart=on-failure
+      TimeoutStartSec=infinity
+      TimeoutStopSec=600
+
+      User=bitcoin
+      Group=bitcoin
+
+      RuntimeDirectory=bitcoind
+      RuntimeDirectoryMode=0710
+
+      ConfigurationDirectory=bitcoin
+      ConfigurationDirectoryMode=0710
+
+      StateDirectory=bitcoind
+      StateDirectoryMode=0710
+
+      MemoryDenyWriteExecute=true
+      NoNewPrivileges=true
+      PrivateDevices=true
+      PrivateTmp=true
+      ProtectHome=true
+      ProtectSystem=full
+      SystemCallArchitectures=native
+
+      [Install]
+      WantedBy=multi-user.target
   - path: /var/autonode/fulcrum/setup.sh
     owner: root:root
     defer: true
@@ -118,8 +211,84 @@ write_files:
       cp -r Fulcrum-${FULCRUM_VERSION}-x86_64-linux/Fulcrum* /usr/local/bin/
       cp -r Fulcrum-${FULCRUM_VERSION}-x86_64-linux/man/*    /usr/local/share/man/man1/
 
+      install -m 0644 -o root -g root -t /etc/systemd/system fulcrum.service
+
       groupadd -r fulcrum
-      useradd -s /usr/sbin/nologin -r -g fulcrum fulcrum
+      useradd -s /usr/sbin/nologin -r -G bitcoin -g fulcrum fulcrum
+
+      mkdir -m 710 /var/lib/fulcrum
+      chown fulcrum:fulcrum /var/lib/fulcrum
+
+      mkdir -m 710 /etc/fulcrum
+      chown fulcrum:fulcrum /etc/fulcrum
+      install -m 0640 -o fulcrum -g fulcrum -t /etc/fulcrum fulcrum.conf
+
+      systemctl enable fulcrum.service
+  - path: /var/autonode/fulcrum/fulcrum.conf
+    owner: root:root
+    defer: true
+    permissions: '0644'
+    content: |
+      bitcoind = 127.0.0.1:8332
+      rpccookie = /var/lib/bitcoind/.cookie
+
+      admin = 8000
+      pidfile = /run/fulcrum/fulcrum.pid
+
+      ## Fulcrum server general settings
+      datadir = /var/lib/fulcrum
+      tcp = 127.0.0.1:50001
+      peering = false
+
+      # Set fast-sync according with your device,
+      # recommended: fast-sync=1/2 x RAM available e.g: 4GB RAM -> dbcache=2048
+      utxo-cache = 8196
+
+      anon_logs = true
+  - path: /var/autonode/fulcrum/fulcrum.service
+    owner: root:root
+    defer: true
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Fulcrum daemon
+      Documentation=https://github.com/cculianu/Fulcrum/blob/master/contrib/rpm/fulcrum.service
+
+      After=network-online.target bitcoind.service
+      Wants=network-online.target bitcoind.service
+
+      [Service]
+      ExecStart=/usr/local/bin/Fulcrum /etc/fulcrum/fulcrum.conf
+
+      Type=exec
+      LimitNOFILE=20000:32767
+
+      Restart=on-failure
+      TimeoutStartSec=infinity
+      TimeoutStopSec=600
+
+      User=fulcrum
+      Group=fulcrum
+
+      RuntimeDirectory=fulcrum
+      RuntimeDirectoryMode=0710
+
+      ConfigurationDirectory=fulcrum
+      ConfigurationDirectoryMode=0710
+
+      StateDirectory=fulcrum
+      StateDirectoryMode=0710
+
+      MemoryDenyWriteExecute=true
+      NoNewPrivileges=true
+      PrivateDevices=true
+      PrivateTmp=true
+      ProtectHome=true
+      ProtectSystem=full
+      SystemCallArchitectures=native
+
+      [Install]
+      WantedBy=multi-user.target
   - path: /var/autonode/mempool/setup.sh
     owner: root:root
     defer: true
@@ -158,4 +327,4 @@ write_files:
       npm run build
 
       groupadd -r mempool
-      useradd -s /usr/sbin/nologin -r -g mempool mempool
+      useradd -s /usr/sbin/nologin -r -G bitcoin -g mempool mempool
