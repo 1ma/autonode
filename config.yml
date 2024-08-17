@@ -46,9 +46,9 @@ apt:
     nginx:
       source: "deb https://nginx.org/packages/mainline/ubuntu noble nginx"
       keyid: 573B FD6B 3D8F BC64 1079 A6AB ABF5 BD82 7BD9 BF62
-    nodesource:
-      source: "deb https://deb.nodesource.com/node_20.x noble main"
-      keyid: 9FD3 B784 BC1C 6FC3 1A8A 0A1C 1655 A0AB 6857 6280
+    nodejs:
+      source: "deb https://deb.nodesource.com/node_20.x nodistro main"
+      keyid: 6F71 F525 2828 41EE DAF8  51B4 2F59 B5F9 9B1B E0B4
     tor:
       source: "deb https://deb.torproject.org/torproject.org noble main"
       keyid: A3C4 F0F9 79CA A22C DBA8 F512 EE8C BC9E 886D DD89

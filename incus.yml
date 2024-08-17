@@ -10,8 +10,8 @@ apt:
       source: "deb https://nginx.org/packages/mainline/ubuntu jammy nginx"
       keyid: 573B FD6B 3D8F BC64 1079 A6AB ABF5 BD82 7BD9 BF62
     nodejs:
-      source: "deb https://deb.nodesource.com/node_20.x jammy main"
-      keyid: 9FD3 B784 BC1C 6FC3 1A8A 0A1C 1655 A0AB 6857 6280
+      source: "deb https://deb.nodesource.com/node_20.x nodistro main"
+      keyid: 6F71 F525 2828 41EE DAF8  51B4 2F59 B5F9 9B1B E0B4
     tor:
       source: "deb https://deb.torproject.org/torproject.org jammy main"
       keyid: A3C4 F0F9 79CA A22C DBA8 F512 EE8C BC9E 886D DD89
@@ -23,6 +23,7 @@ package_upgrade: true
 
 packages:
   - bash-completion
+  - build-essential
   - curl
   - deb.torproject.org-keyring
   - git
@@ -33,6 +34,7 @@ packages:
   - man-db
   - mariadb-client
   - mariadb-server
+  - nano
   - nginx
   - nodejs
   - python-is-python3
@@ -42,6 +44,7 @@ packages:
 runcmd:
   - bash -x /var/autonode/knots/setup.sh
   - bash -x /var/autonode/fulcrum/setup.sh
+  - bash -x /var/autonode/mempool/setup.sh
 
 power_state:
   mode: reboot
@@ -62,7 +65,6 @@ write_files:
     permissions: '0755'
     content: |
       #!/usr/bin/env bash
-
       set -euo pipefail
 
       export KNOTS_VERSION=27.1.knots20240801
@@ -70,8 +72,8 @@ write_files:
 
       # TODO Download release and verify signatures instead of downloading directly from GitHub
       curl -s -o /etc/bash_completion.d/bitcoin-cli.bash https://raw.githubusercontent.com/bitcoinknots/bitcoin/v${KNOTS_VERSION}/contrib/completions/bash/bitcoin-cli.bash
-      curl -s -o /etc/bash_completion.d/bitcoin-tx.bash https://raw.githubusercontent.com/bitcoinknots/bitcoin/v${KNOTS_VERSION}/contrib/completions/bash/bitcoin-tx.bash
-      curl -s -o /etc/bash_completion.d/bitcoind.bash https://raw.githubusercontent.com/bitcoinknots/bitcoin/v${KNOTS_VERSION}/contrib/completions/bash/bitcoind.bash
+      curl -s -o /etc/bash_completion.d/bitcoin-tx.bash  https://raw.githubusercontent.com/bitcoinknots/bitcoin/v${KNOTS_VERSION}/contrib/completions/bash/bitcoin-tx.bash
+      curl -s -o /etc/bash_completion.d/bitcoind.bash    https://raw.githubusercontent.com/bitcoinknots/bitcoin/v${KNOTS_VERSION}/contrib/completions/bash/bitcoind.bash
 
       curl -s https://api.github.com/repos/bitcoinknots/guix.sigs/contents/builder-keys | jq -r '.[].download_url' | while read url; do curl -s "$url" | gpg --import; done
 
@@ -85,9 +87,9 @@ write_files:
       tar zxf bitcoin-${KNOTS_VERSION}-x86_64-linux-gnu.tar.gz
       tree
 
-      cp -r bitcoin-${KNOTS_VERSION}/bin/bitcoin*          /usr/local/bin/
-      cp -r bitcoin-${KNOTS_VERSION}/share/man/man1        /usr/local/share/man/
-      cp bitcoin-${KNOTS_VERSION}/share/rpcauth/rpcauth.py /usr/local/bin/
+      install -m 0755 -o root -g root -t /usr/local/bin bitcoin-${KNOTS_VERSION}/bin/bitcoin*
+      install -m 0755 -o root -g root -t /usr/local/bin bitcoin-${KNOTS_VERSION}/share/rpcauth/rpcauth.py
+      cp -r bitcoin-${KNOTS_VERSION}/share/man/man1 /usr/local/share/man/
 
       groupadd -r bitcoin
       useradd -s /usr/sbin/nologin -r -g bitcoin bitcoin
@@ -97,7 +99,6 @@ write_files:
     permissions: '0755'
     content: |
       #!/usr/bin/env bash
-
       set -euo pipefail
 
       export FULCRUM_VERSION=1.11.0
@@ -119,3 +120,42 @@ write_files:
 
       groupadd -r fulcrum
       useradd -s /usr/sbin/nologin -r -g fulcrum fulcrum
+  - path: /var/autonode/mempool/setup.sh
+    owner: root:root
+    defer: true
+    permissions: '0755'
+    content: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+
+      export MEMPOOL_VERSION=v3.0.0-beta5
+
+      curl -s https://github.com/wiz.gpg | gpg --import
+
+      cd /var/autonode/mempool
+      git clone --branch ${MEMPOOL_VERSION} --depth 1 https://github.com/mempool/mempool code
+
+      cd ./code
+      git verify-tag ${MEMPOOL_VERSION}
+
+      curl -s https://sh.rustup.rs | sh -s -- -y --default-toolchain $(cat ./rust/gbt/rust-toolchain)
+
+      export HOME=/root
+      source "$HOME/.cargo/env"
+
+      cd ./backend
+      npm install
+      npm run build
+
+      cd ../frontend
+      node update-config.js \
+        ACCELERATOR_BUTTON=false \
+        ITEMS_PER_PAGE=25 \
+        MINING_DASHBOARD=false \
+        ROOT_NETWORK=mainnet
+      node generate-config.js
+      npm install
+      npm run build
+
+      groupadd -r mempool
+      useradd -s /usr/sbin/nologin -r -g mempool mempool
