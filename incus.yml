@@ -7,14 +7,14 @@ locale: en_US.UTF-8
 apt:
   sources:
     nginx:
-      source: "deb https://nginx.org/packages/mainline/ubuntu jammy nginx"
-      keyid: 573B FD6B 3D8F BC64 1079 A6AB ABF5 BD82 7BD9 BF62
+      source: "deb https://nginx.org/packages/mainline/debian bookworm nginx"
+      keyid: 573B FD6B 3D8F BC64 1079  A6AB ABF5 BD82 7BD9 BF62
     nodejs:
       source: "deb https://deb.nodesource.com/node_20.x nodistro main"
       keyid: 6F71 F525 2828 41EE DAF8  51B4 2F59 B5F9 9B1B E0B4
     tor:
-      source: "deb https://deb.torproject.org/torproject.org jammy main"
-      keyid: A3C4 F0F9 79CA A22C DBA8 F512 EE8C BC9E 886D DD89
+      source: "deb https://deb.torproject.org/torproject.org bookworm main"
+      keyid: A3C4 F0F9 79CA A22C DBA8  F512 EE8C BC9E 886D DD89
 
 package_update: true
 package_upgrade: true
@@ -297,7 +297,7 @@ write_files:
       #!/usr/bin/env bash
       set -euo pipefail
 
-      export MEMPOOL_VERSION=v3.0.0-beta5
+      export MEMPOOL_VERSION=v3.0.0-rc1
 
       curl -s https://github.com/wiz.gpg | gpg --import
 
