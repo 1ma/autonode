@@ -28,17 +28,20 @@ packages:
   - gnupg
   - htop
   - jq
+  - less
   - man-db
   - mariadb-client
   - mariadb-server
   - nano
   - net-tools
+  - netcat-openbsd
   - nftables
   - nginx
   - nodejs
   - python-is-python3
   - tor
   - tree
+  - unattended-upgrades
 
 runcmd:
   - systemctl enable nftables.service
@@ -213,8 +216,6 @@ write_files:
       cp -r Fulcrum-${FULCRUM_VERSION}-x86_64-linux/Fulcrum* /usr/local/bin/
       cp -r Fulcrum-${FULCRUM_VERSION}-x86_64-linux/man/*    /usr/local/share/man/man1/
 
-      install -m 0644 -o root -g root -t /etc/systemd/system fulcrum.service
-
       groupadd -r fulcrum
       useradd -s /usr/sbin/nologin -r -G bitcoin -g fulcrum fulcrum
 
@@ -225,6 +226,7 @@ write_files:
       chown fulcrum:fulcrum /etc/fulcrum
       install -m 0640 -o fulcrum -g fulcrum -t /etc/fulcrum fulcrum.conf
 
+      install -m 0644 -o root -g root -t /etc/systemd/system fulcrum.service
       systemctl enable fulcrum.service
   - path: /var/autonode/fulcrum/fulcrum.conf
     owner: root:root
@@ -309,12 +311,30 @@ write_files:
       cd ./code
       git verify-tag ${MEMPOOL_VERSION}
 
+      mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.original
+      sed -e "s/nobody/nginx/" -e "s/127.0.0.1/0.0.0.0/" nginx.conf > /etc/nginx/nginx.conf
+      cp nginx-mempool.conf /etc/nginx/nginx-mempool.conf
+
+      mysql -e "CREATE DATABASE mempool;"
+      mysql -e "GRANT ALL PRIVILEGES ON mempool.* TO 'mempool'@'%' IDENTIFIED BY 'mempool';"
+
       curl -s https://sh.rustup.rs | sh -s -- -y --default-toolchain $(cat ./rust/gbt/rust-toolchain)
 
       export HOME=/root
       source "$HOME/.cargo/env"
 
       cd ./backend
+
+      curl -s -O https://gist.githubusercontent.com/1ma/3c5f403edcbe9132be4f0ba33623ebd8/raw/0ba538a149618c956ed6bba8f948eaab51f97be0/mempool-config-generator.js
+      node mempool-config-generator.js \
+        CORE_RPC.COOKIE=true \
+        CORE_RPC.COOKIE_PATH=/var/lib/bitcoind/.cookie \
+        DATABASE.SOCKET="/var/run/mysqld/mysqld.sock" \
+        ELECTRUM.PORT=50001 \
+        ELECTRUM.TLS_ENABLED=false \
+        FIAT_PRICE.ENABLED=false \
+        SYSLOG.ENABLED=false
+
       npm install
       npm run build
 
@@ -328,5 +348,39 @@ write_files:
       npm install
       npm run build
 
+      mkdir -p /var/www/mempool
+      ln -s /var/autonode/mempool/code/frontend/dist/mempool/browser /var/www/mempool/browser
+
       groupadd -r mempool
       useradd -s /usr/sbin/nologin -r -G bitcoin -g mempool mempool
+
+      cd /var/autonode/mempool
+      chown -R mempool:mempool code
+
+      install -m 0644 -o root -g root -t /etc/systemd/system mempool-backend.service
+      systemctl enable mempool-backend.service
+  - path: /var/autonode/mempool/mempool-backend.service
+    owner: root:root
+    defer: true
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Mempool Backend daemon
+
+      After=network.target bitcoind.service fulcrum.service
+      Wants=network.target bitcoind.service fulcrum.service
+
+      [Service]
+      Type=exec
+      WorkingDirectory=/var/autonode/mempool/code/backend
+      ExecStart=/usr/bin/npm run start
+
+      User=mempool
+      Group=mempool
+
+      Restart=on-failure
+      TimeoutStartSec=infinity
+      TimeoutStopSec=600
+
+      [Install]
+      WantedBy=multi-user.target
