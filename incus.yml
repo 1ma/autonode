@@ -33,6 +33,7 @@ packages:
   - mariadb-server
   - nano
   - net-tools
+  - nftables
   - nginx
   - nodejs
   - python-is-python3
@@ -40,6 +41,7 @@ packages:
   - tree
 
 runcmd:
+  - systemctl enable nftables.service
   - bash -x /var/autonode/knots/setup.sh
   - bash -x /var/autonode/fulcrum/setup.sh
   - bash -x /var/autonode/mempool/setup.sh
@@ -128,16 +130,16 @@ write_files:
       pid=/run/bitcoind/bitcoind.pid
       walletimplicitsegwit=1
 
-      # bloom filters
+      # bloom filter settings
       peerblockfilters=1
       peerbloomfilters=1
 
-      # indexes
+      # index settings
       blockfilterindex=basic
       coinstatsindex=1
       txindex=1
 
-      # ZMQ
+      # ZMQ settings
       zmqpubhashblock=tcp://127.0.0.1:8433
   - path: /var/autonode/knots/bitcoind.service
     owner: root:root
