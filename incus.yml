@@ -12,6 +12,9 @@ apt:
     nodejs:
       source: "deb https://deb.nodesource.com/node_20.x nodistro main"
       keyid: 6F71 F525 2828 41EE DAF8  51B4 2F59 B5F9 9B1B E0B4
+    redis:
+      source: "deb https://packages.redis.io/deb bookworm main"
+      keyid: 5431 8FA4 052D 1E61 A6B6  F7BB 5F43 49D6 BF53 AA0C
     tor:
       source: "deb https://deb.torproject.org/torproject.org bookworm main"
       keyid: A3C4 F0F9 79CA A22C DBA8  F512 EE8C BC9E 886D DD89
@@ -39,12 +42,14 @@ packages:
   - nginx
   - nodejs
   - python-is-python3
+  - redis-server
+  - redis-tools
   - tor
   - tree
   - unattended-upgrades
 
 runcmd:
-  - systemctl enable nftables.service
+  - systemctl enable nftables.service redis-server.service
   - bash -x /var/autonode/knots/setup.sh
   - bash -x /var/autonode/fulcrum/setup.sh
   - bash -x /var/autonode/mempool/setup.sh
@@ -62,6 +67,15 @@ write_files:
       ControlPort 9051
       CookieAuthentication 1
       CookieAuthFileGroupReadable 1
+  - path: /etc/redis/redis.conf
+    owner: redis:redis
+    defer: true
+    append: true
+    permissions: '0640'
+    content: |
+
+      unixsocket /run/redis/redis.sock
+      unixsocketperm 660
   - path: /var/autonode/knots/setup.sh
     owner: root:root
     defer: true
@@ -333,6 +347,9 @@ write_files:
         ELECTRUM.PORT=50001 \
         ELECTRUM.TLS_ENABLED=false \
         FIAT_PRICE.ENABLED=false \
+        MEMPOOL.CACHE_ENABLED=false \
+        REDIS.ENABLED=true \
+        REDIS.UNIX_SOCKET_PATH=/run/redis/redis.sock \
         SYSLOG.ENABLED=false
 
       npm install
@@ -352,7 +369,7 @@ write_files:
       ln -s /var/autonode/mempool/code/frontend/dist/mempool/browser /var/www/mempool/browser
 
       groupadd -r mempool
-      useradd -s /usr/sbin/nologin -r -G bitcoin -g mempool mempool
+      useradd -s /usr/sbin/nologin -r -G bitcoin,redis -g mempool mempool
 
       cd /var/autonode/mempool
       chown -R mempool:mempool code
