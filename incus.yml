@@ -325,8 +325,11 @@ write_files:
       cd ./code
       git verify-tag ${MEMPOOL_VERSION}
 
+      set +x
+      DB_USER_PASSWORD=$(openssl rand -hex 32)
       mysql -e "CREATE DATABASE mempool;"
-      mysql -e "GRANT ALL PRIVILEGES ON mempool.* TO 'mempool'@'%' IDENTIFIED BY 'mempool';"
+      mysql -e "GRANT ALL PRIVILEGES ON mempool.* TO 'mempool'@'%' IDENTIFIED BY '${DB_USER_PASSWORD}';"
+      set -x
 
       curl -s https://sh.rustup.rs | sh -s -- -y --default-toolchain $(cat ./rust/gbt/rust-toolchain)
 
@@ -336,9 +339,11 @@ write_files:
       cd ./backend
 
       curl -s -O https://gist.githubusercontent.com/1ma/3c5f403edcbe9132be4f0ba33623ebd8/raw/0ba538a149618c956ed6bba8f948eaab51f97be0/mempool-config-generator.js
+      set +x
       node mempool-config-generator.js \
         CORE_RPC.COOKIE=true \
         CORE_RPC.COOKIE_PATH=/var/lib/bitcoind/.cookie \
+        DATABASE.PASSWORD="${DB_USER_PASSWORD}" \
         DATABASE.SOCKET="/var/run/mysqld/mysqld.sock" \
         ELECTRUM.PORT=50001 \
         ELECTRUM.TLS_ENABLED=false \
@@ -347,6 +352,7 @@ write_files:
         REDIS.ENABLED=true \
         REDIS.UNIX_SOCKET_PATH=/run/redis/redis.sock \
         SYSLOG.ENABLED=false
+      set -x
 
       npm install
       npm run build
