@@ -315,7 +315,7 @@ write_files:
       #!/usr/bin/env bash
       set -euo pipefail
 
-      export MEMPOOL_VERSION=v3.0.0-rc1
+      export MEMPOOL_VERSION=v3.0.0
 
       curl -s https://github.com/wiz.gpg | gpg --import
 
@@ -361,7 +361,6 @@ write_files:
       node update-config.js \
         ACCELERATOR_BUTTON=false \
         ITEMS_PER_PAGE=25 \
-        MINING_DASHBOARD=false \
         ROOT_NETWORK=mainnet
       node generate-config.js
       npm install
@@ -409,6 +408,8 @@ write_files:
     content: |
       :80 {
       	root /var/autonode/mempool/code/frontend/dist/mempool/browser
+
+      	header Vary "Accept-Language, Cookie"
 
       	map {header.accept-language} {header_lang} {
       		default "en-US"
