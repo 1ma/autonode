@@ -6,9 +6,9 @@ locale: en_US.UTF-8
 
 apt:
   sources:
-    nginx:
-      source: "deb https://nginx.org/packages/mainline/debian bookworm nginx"
-      keyid: 573B FD6B 3D8F BC64 1079  A6AB ABF5 BD82 7BD9 BF62
+    caddy:
+      source: "deb https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main"
+      keyid: 6576 0C51 EDEA 2017 CEA2  CA15 155B 6D79 CA56 EA34
     nodejs:
       source: "deb https://deb.nodesource.com/node_20.x nodistro main"
       keyid: 6F71 F525 2828 41EE DAF8  51B4 2F59 B5F9 9B1B E0B4
@@ -25,6 +25,7 @@ package_upgrade: true
 packages:
   - bash-completion
   - build-essential
+  - caddy
   - curl
   - deb.torproject.org-keyring
   - git
@@ -39,7 +40,6 @@ packages:
   - net-tools
   - netcat-openbsd
   - nftables
-  - nginx
   - nodejs
   - python-is-python3
   - redis-server
@@ -58,15 +58,6 @@ power_state:
   mode: reboot
 
 write_files:
-  - path: /etc/tor/torrc
-    owner: root:root
-    defer: true
-    append: true
-    permissions: '0644'
-    content: |
-      ControlPort 9051
-      CookieAuthentication 1
-      CookieAuthFileGroupReadable 1
   - path: /etc/redis/redis.conf
     owner: redis:redis
     defer: true
@@ -76,6 +67,15 @@ write_files:
 
       unixsocket /run/redis/redis.sock
       unixsocketperm 660
+  - path: /etc/tor/torrc
+    owner: root:root
+    defer: true
+    append: true
+    permissions: '0644'
+    content: |
+      ControlPort 9051
+      CookieAuthentication 1
+      CookieAuthFileGroupReadable 1
   - path: /var/autonode/knots/setup.sh
     owner: root:root
     defer: true
@@ -325,10 +325,6 @@ write_files:
       cd ./code
       git verify-tag ${MEMPOOL_VERSION}
 
-      mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.original
-      sed -e "s/nobody/nginx/" -e "s/127.0.0.1/0.0.0.0/" nginx.conf > /etc/nginx/nginx.conf
-      cp nginx-mempool.conf /etc/nginx/nginx-mempool.conf
-
       mysql -e "CREATE DATABASE mempool;"
       mysql -e "GRANT ALL PRIVILEGES ON mempool.* TO 'mempool'@'%' IDENTIFIED BY 'mempool';"
 
@@ -365,14 +361,13 @@ write_files:
       npm install
       npm run build
 
-      mkdir -p /var/www/mempool
-      ln -s /var/autonode/mempool/code/frontend/dist/mempool/browser /var/www/mempool/browser
-
       groupadd -r mempool
       useradd -s /usr/sbin/nologin -r -G bitcoin,redis -g mempool mempool
 
       cd /var/autonode/mempool
       chown -R mempool:mempool code
+
+      install -m 0644 -o root -g root -t /etc/caddy Caddyfile
 
       install -m 0644 -o root -g root -t /etc/systemd/system mempool-backend.service
       systemctl enable mempool-backend.service
@@ -401,3 +396,96 @@ write_files:
 
       [Install]
       WantedBy=multi-user.target
+  - path: /var/autonode/mempool/Caddyfile
+    owner: root:root
+    defer: true
+    permissions: '0644'
+    content: |
+      :80 {
+      	root /var/autonode/mempool/code/frontend/dist/mempool/browser
+
+      	map {header.accept-language} {header_lang} {
+      		default "en-US"
+      		~^ar "ar"
+      		~^cs "cs"
+      		~^da "da"
+      		~^de "de"
+      		~^en "en-US"
+      		~^es "es"
+      		~^fa "fa"
+      		~^fi "fi"
+      		~^fr "fr"
+      		~^he "he"
+      		~^hi "hi"
+      		~^hr "hr"
+      		~^hu "hu"
+      		~^it "it"
+      		~^ja "ja"
+      		~^ka "ka"
+      		~^ko "ko"
+      		~^lt "lt"
+      		~^mk "mk"
+      		~^nb "nb"
+      		~^ne "ne"
+      		~^nl "nl"
+      		~^pl "pl"
+      		~^pt "pt"
+      		~^ro "ro"
+      		~^ru "ru"
+      		~^sl "sl"
+      		~^sv "sv"
+      		~^th "th"
+      		~^tr "tr"
+      		~^uk "uk"
+      		~^vi "vi"
+      		~^zh "zh"
+      	}
+
+      	map {cookie.lang} {lang} {
+      		default {header_lang}
+      		ar "ar"
+      		cs "cs"
+      		da "da"
+      		de "de"
+      		en "en-US"
+      		es "es"
+      		fa "fa"
+      		fi "fi"
+      		fr "fr"
+      		he "he"
+      		hi "hi"
+      		hr "hr"
+      		hu "hu"
+      		it "it"
+      		ja "ja"
+      		ka "ka"
+      		ko "ko"
+      		lt "lt"
+      		mk "mk"
+      		nb "nb"
+      		ne "ne"
+      		nl "nl"
+      		pl "pl"
+      		pt "pt"
+      		ro "ro"
+      		ru "ru"
+      		sl "sl"
+      		sv "sv"
+      		th "th"
+      		tr "tr"
+      		uk "uk"
+      		vi "vi"
+      		zh "zh"
+      	}
+
+      	route {
+      		reverse_proxy /api/v1/* 127.0.0.1:8999
+      		handle /api/* {
+      			uri replace /api/ /api/v1/
+      			reverse_proxy 127.0.0.1:8999
+      		}
+
+      		try_files {path} /{lang}/{path} /en-US/{path} /{lang}/index.html /en-US/index.html
+      		file_server
+      	}
+      }
