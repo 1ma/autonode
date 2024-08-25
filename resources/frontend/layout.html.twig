@@ -3,10 +3,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="htmx-config" content='{"inlineStyleNonce":"{{ random_nonce }}"}'>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'nonce-{{ random_nonce }}'; object-src 'none';">
     <title>AutoNode</title>
-    <link rel="stylesheet" href="/assets/css/missing-1.1.1.min.css">
+    <link rel="stylesheet" href="/assets/css/missing-1.1.2.min.css">
     <link rel="stylesheet" href="/assets/css/site.css">
-    <script src="/assets/js/htmx-1.9.10.min.js" ></script>
+    <script src="/assets/js/htmx-2.0.2.min.js" ></script>
 </head>
 <body>
 <header class="navbar">

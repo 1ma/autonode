@@ -5,14 +5,14 @@
     "require": {
         "jelly/jelly": "dev-master",
         "nyholm/psr7": "^1.8",
-        "symfony/yaml": "^7.0",
-        "twig/twig": "^3.8",
-        "uma/dic": "^3.0"
+        "symfony/yaml": "^7.1",
+        "twig/twig": "^3.11",
+        "uma/dic": "^4.0"
     },
     "require-dev": {
-        "deployer/deployer": "^7.3",
-        "friendsofphp/php-cs-fixer": "^3.46",
-        "phpunit/phpunit": "^10.5",
+        "deployer/deployer": "^7.4",
+        "friendsofphp/php-cs-fixer": "^3.62",
+        "phpunit/phpunit": "^11.3",
         "roave/security-advisories": "dev-latest"
     },
     "autoload": {

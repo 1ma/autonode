@@ -17,13 +17,17 @@ final class Handlers implements ServiceProvider
     public function provide(Container $c): void
     {
         $c->set(Environment::class, static function (): Environment {
-            return new Environment(
+            $twig = new Environment(
                 new FilesystemLoader(__ROOT__.'/resources/frontend'),
                 [
                     'debug' => true,
                     'strict_variables' => true,
                 ]
             );
+
+            $twig->addGlobal('random_nonce', base64_encode(random_bytes(12)));
+
+            return $twig;
         });
 
         $c->set(LandingPage::class, static function (Container $c): RequestHandlerInterface {
