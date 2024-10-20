@@ -213,7 +213,7 @@ write_files:
       #!/usr/bin/env bash
       set -euo pipefail
 
-      export FULCRUM_VERSION=1.11.0
+      export FULCRUM_VERSION=1.11.1
 
       curl -s https://raw.githubusercontent.com/Electron-Cash/keys-n-hashes/master/pubkeys/calinkey.txt | gpg --import
 
@@ -315,7 +315,7 @@ write_files:
       #!/usr/bin/env bash
       set -euo pipefail
 
-      export MEMPOOL_VERSION=v3.0.0
+      export MEMPOOL_VERSION=v3.0.1
 
       curl -s https://github.com/wiz.gpg | gpg --import
 
