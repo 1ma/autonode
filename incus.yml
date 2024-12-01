@@ -347,8 +347,11 @@ write_files:
         DATABASE.SOCKET="/var/run/mysqld/mysqld.sock" \
         ELECTRUM.PORT=50001 \
         ELECTRUM.TLS_ENABLED=false \
-        FIAT_PRICE.ENABLED=false \
+        MEMPOOL.AUTOMATIC_POOLS_UPDATE=true \
+        MEMPOOL.BLOCKS_SUMMARIES_INDEXING=true \
         MEMPOOL.CACHE_ENABLED=false \
+        MEMPOOL.CPFP_INDEXING=true \
+        MEMPOOL.GOGGLES_INDEXING=true \
         REDIS.ENABLED=true \
         REDIS.UNIX_SOCKET_PATH=/run/redis/redis.sock \
         SYSLOG.ENABLED=false
